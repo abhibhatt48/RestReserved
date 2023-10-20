@@ -6,8 +6,8 @@ import Booking from "./views/Booking/index";
 const Router = () => {
   return (
     <Routes>
-      {/* <Route path="/" element={<Booking />} /> */}
-      <Route path="/booking" element={<Booking />} />
+      <Route path="/" element={<Booking />} />
+      {/* <Route path="/booking" element={<Booking />} /> */}
     </Routes>
   );
 };
