@@ -1,12 +1,8 @@
-// BookingForm.js
 import React, { useState } from "react";
 
 function BookingForm() {
   const [name, setName] = useState("");
   const [partySize, setPartySize] = useState(1);
-
-  // Handle form submission and API call
-
   return (
     <div>
       <h2>Table Booking</h2>
