@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import BookingForm from "./BookingForm";
-import TimeSlotSelector from "./TimeSlotSelector";
 import MenuSelector from "./MenuSelector";
 
 function Booking() {
@@ -10,7 +9,7 @@ function Booking() {
   return (
     <div>
       <BookingForm />
-      <TimeSlotSelector />
+      
       <FormControlLabel
         control={
           <Checkbox
