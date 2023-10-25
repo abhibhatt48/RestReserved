@@ -14,10 +14,9 @@ def lambda_handler(event, context):
         first_name = body.get('first_name')
         last_name = body.get('last_name')
         contact_number = body.get('contact_number')
-        role = body.get('role')
         logging.info("Performing input validation")
         # Performing input validation
-        if not email_id or not first_name or not last_name or not contact_number or not role:
+        if not email_id or not first_name or not last_name or not contact_number:
             return {
                 'statusCode': 400,
                 'body': json.dumps({'error': 'All fields are required.'})
@@ -29,7 +28,7 @@ def lambda_handler(event, context):
             'first_name': first_name,
             'last_name': last_name,
             'contact_number': contact_number,
-            'role': role
+            'role': 'customer'
         }
         
         table.put_item(Item=user_item)
