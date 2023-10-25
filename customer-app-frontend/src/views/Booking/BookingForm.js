@@ -1,25 +1,33 @@
 import React, { useState } from "react";
+import { Button, TextField } from "@mui/material";
 
 function BookingForm() {
   const [name, setName] = useState("");
   const [partySize, setPartySize] = useState(1);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Handle form submission here
+  };
+
   return (
     <div>
       <h2>Table Booking</h2>
-      <form>
-        <input
-          type="text"
-          placeholder="Your Name"
+      <form onSubmit={handleSubmit}>
+        <TextField
+          label="Your Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <input
+        <TextField
           type="number"
-          placeholder="Party Size"
+          label="Party Size"
           value={partySize}
           onChange={(e) => setPartySize(e.target.value)}
         />
-        <button>Book Table</button>
+        <Button variant="contained" color="primary" type="submit">
+          Book Table
+        </Button>
       </form>
     </div>
   );

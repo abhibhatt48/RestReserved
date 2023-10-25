@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 
 function TimeSlotSelector() {
-  const [selectedTime, setSelectedTime] = useState("");
   return (
     <div>
       <h2>Choose a Time Slot</h2>
