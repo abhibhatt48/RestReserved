@@ -1,101 +1,134 @@
-const AWS = require('aws-sdk');
-const dynamodb = new AWS.DynamoDB.DocumentClient();
+const admin = require("firebase-admin");
+const serviceAccount = require("./high-radius-401215-firebase-adminsdk-c4bv1-1ba4657cbc.json");
 
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://high-radius-401215.firebaseio.com",
+});
+
+const firestore = admin.firestore();
 
 exports.handler = async (event) => {
-    const requestBody = JSON.parse(event.body);
+  console.log(event);
+  const requestBody = event;
 
-    const {
-        reservation_id,
-        updated_reservation_date,
-        updated_reservation_time,
-        updated_number_of_guests,
-        updated_special_requests,
-    } = requestBody;
-    console.log("reservation-id",reservation_id);
-    try {
-        const updatedReservation = await updateAndSaveReservation(reservation_id, {
-            reservation_date: updated_reservation_date,
-            reservation_time: updated_reservation_time,
-            number_of_guests: updated_number_of_guests,
-            special_requests: updated_special_requests,
-        });
+  const {
+    reservation_id,
+    updated_reservation_date,
+    updated_reservation_time,
+    updated_table_number,
+    updated_number_of_guests,
+    updated_special_requests,
+    menu_items,
+  } = requestBody;
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: 'Reservation updated successfully', updatedReservation }),
-        };
-    } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: error.message }),
-        };
-    }
+  try {
+    const updatedReservation = await updateAndSaveReservation(
+      reservation_id,
+      {
+        reservation_date: updated_reservation_date,
+        reservation_time: updated_reservation_time,
+        table_number: updated_table_number,
+        number_of_guests: updated_number_of_guests,
+        special_requests: updated_special_requests,
+      },
+      menu_items
+    );
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "Reservation updated successfully",
+        updatedReservation,
+      }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: error.message }),
+    };
+  }
 };
 
-// Function to get a reservation by ID
-async function getReservationById(reservationId) {
-    try {
-        const params = {
-            TableName: 'restaurant_reservation',
-            Key: {
-                reservation_id: reservationId,
-            },
-        };
+async function updateAndSaveReservation(reservationId, updatedData, menuItems) {
+  const reservationRef = firestore
+    .collection("reservations")
+    .doc(reservationId);
 
-        const existingReservation = await dynamodb.get(params).promise();
+  try {
+    const existingReservation = await reservationRef.get();
 
-        if (!existingReservation.Item) {
-            return null; // Reservation not found
+    if (!existingReservation.exists) {
+      throw new Error("Reservation not found");
+    }
+
+    const reservationData = existingReservation.data() || {};
+
+    if (updatedData.reservation_date !== undefined) {
+      reservationData.reservation_date = updatedData.reservation_date;
+    }
+    if (updatedData.reservation_time !== undefined) {
+      reservationData.reservation_time = updatedData.reservation_time;
+    }
+    if (updatedData.table_number !== undefined) {
+      reservationData.table_number = updatedData.table_number;
+    }
+    if (updatedData.number_of_guests !== undefined) {
+      reservationData.number_of_guests = updatedData.number_of_guests;
+    }
+    if (updatedData.special_requests !== undefined) {
+      reservationData.special_requests = updatedData.special_requests;
+    }
+
+    if (menuItems !== undefined) {
+      let existingMenuItems = reservationData.menu_items || [];
+
+      for (const updatedMenuItem of menuItems) {
+        const existingMenuItemIndex = existingMenuItems.findIndex(
+          (item) => item.item_id === updatedMenuItem.item_id
+        );
+
+        if (existingMenuItemIndex === -1) {
+          // If item_id not found, add a new item
+          if (
+            updatedMenuItem.item_id &&
+            updatedMenuItem.item_name &&
+            updatedMenuItem.quantity !== undefined
+          ) {
+            existingMenuItems.push(updatedMenuItem);
+          } else {
+            throw new Error("Invalid menu item data");
+          }
+        } else if (updatedMenuItem.quantity !== undefined) {
+          // Update only the quantity or remove if it's 0
+          if (updatedMenuItem.quantity === 0) {
+            existingMenuItems.splice(existingMenuItemIndex, 1);
+          } else {
+            existingMenuItems[existingMenuItemIndex].quantity =
+              updatedMenuItem.quantity;
+          }
         }
+      }
 
-        return existingReservation.Item;
-    } catch (error) {
-        console.error('Error getting reservation by ID:', error);
-        return null; // Return null or an appropriate indicator
-    }
-}
-
-// Function to update and save a reservation
-async function updateAndSaveReservation(reservationId, updatedData) {
-    const existingReservation = await getReservationById(reservationId);
-
-    if (!existingReservation) {
-        throw new Error('Reservation not found');
+      // Update the menu_items in Firestore
+      reservationData.menu_items = existingMenuItems;
     }
 
-    // Update individual properties based on updatedData
-    if (updatedData.reservation_date) {
-        existingReservation.reservation_date = updatedData.reservation_date;
-    }
-    if (updatedData.reservation_time) {
-        existingReservation.reservation_time = updatedData.reservation_time;
-    }
-    if (updatedData.number_of_guests) {
-        existingReservation.number_of_guests = updatedData.number_of_guests;
-    }
-    if (updatedData.special_requests) {
-        existingReservation.special_requests = updatedData.special_requests;
-    }
+    await reservationRef.update({
+      reservation_date: reservationData.reservation_date,
+      reservation_time: reservationData.reservation_time,
+      table_number: reservationData.table_number,
+      number_of_guests: reservationData.number_of_guests,
+      special_requests: reservationData.special_requests,
+      menu_items: reservationData.menu_items,
+    });
 
-    const updateParams = {
-        TableName: 'restaurant_reservation', // Replace with your table name
-        Key: { reservation_id: reservationId },
-        UpdateExpression: 'SET reservation_date = :rd, reservation_time = :rt, number_of_guests = :ng, special_requests = :sr',
-        ExpressionAttributeValues: {
-            ':rd': existingReservation.reservation_date,
-            ':rt': existingReservation.reservation_time,
-            ':ng': existingReservation.number_of_guests,
-            ':sr': existingReservation.special_requests,
-        },
-        ReturnValues: 'ALL_NEW',
+    return {
+      ...reservationData,
+      ...updatedData,
     };
-
-    try {
-        const result = await dynamodb.update(updateParams).promise();
-        return result.Attributes;
-    } catch (error) {
-        throw  Error('Failed to update and save reservation');
-    }
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to update and save reservation: " + error.message);
+  }
 }
-
