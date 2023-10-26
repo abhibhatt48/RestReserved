@@ -10,6 +10,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import "./ViewBooking.css";
+import Footer from "../../common/Footer";
 
 function ViewBooking() {
   const [user, setUser] = useState({});
@@ -73,87 +74,115 @@ function ViewBooking() {
     // Handle edit logic for the selected reservation
   };
 
-  const handleDeleteBooking = (reservationId) => {
-    // Handle delete logic for the selected reservation
+  const handleDeleteBooking = async (reservationId) => {
+    try {
+      const response = await fetch(
+        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/delete",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reservation_id: reservationId,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        // Handle successful deletion, e.g., remove the deleted booking from the state
+        const updatedBookings = bookings.filter(
+          (booking) => booking.reservation_id !== reservationId
+        );
+        setBookings(updatedBookings);
+      } else {
+        console.error("Failed to delete the booking");
+      }
+    } catch (error) {
+      console.error("Error deleting the booking:", error);
+    }
   };
 
   return (
-    <Box className="booking-details-container">
-      <Typography variant="h4">User's Bookings</Typography>
-      {loading ? (
-        <Typography>Loading user bookings</Typography>
-      ) : (
-        <Box>
-          {bookings.length === 0 ? (
-            <Typography>No bookings found</Typography>
-          ) : (
-            <Box>
-              {bookings.map((booking, index) => (
-                <Card key={index} className="booking-details">
-                  <CardContent>
-                    <Typography variant="h6">
-                      Reservation Date: {booking.reservation_date}
-                    </Typography>
-                    <Typography variant="body1">
-                      Booking Time: {booking.booking_time}
-                    </Typography>
-                    <Typography variant="body1">
-                      Number of Guests: {booking.number_of_guests}
-                    </Typography>
-                    <Typography variant="body1">
-                      Special Requests: {booking.special_requests}
-                    </Typography>
-                    <Typography variant="h6">Menu Items</Typography>
-                    <List>
-                      {booking.menu_items ? (
-                        booking.menu_items.map((menuItem, itemIndex) => (
-                          <ListItem key={itemIndex}>
-                            <ListItemText
-                              primary={`Item Name: ${menuItem.item_name}`}
-                              secondary={`Quantity: ${menuItem.quantity}`}
-                            />
-                          </ListItem>
-                        ))
-                      ) : (
-                        <Typography>No menu items available</Typography>
-                      )}
-                    </List>
-                    <Box>
-                      {isBookingExpired(booking) ? (
-                        <Typography variant="body2" color="textSecondary">
-                          Cannot Edit This Order
-                        </Typography>
-                      ) : (
-                        <Box>
-                          <Button
-                            onClick={() =>
-                              handleEditBooking(booking.reservation_id)
-                            }
-                            variant="outlined"
-                            color="primary"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() =>
-                              handleDeleteBooking(booking.reservation_id)
-                            }
-                            variant="outlined"
-                            color="secondary"
-                          >
-                            Delete
-                          </Button>
-                        </Box>
-                      )}
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
-            </Box>
-          )}
-        </Box>
-      )}
-    </Box>
+    <>
+      <Box className="booking-details-container">
+        <Typography variant="h4">User's Bookings</Typography>
+        {loading ? (
+          <Typography>Loading user bookings</Typography>
+        ) : (
+          <Box>
+            {bookings.length === 0 ? (
+              <Typography>No bookings found</Typography>
+            ) : (
+              <Box>
+                {bookings.map((booking, index) => (
+                  <Card key={index} className="booking-details">
+                    <CardContent>
+                      <Typography variant="h6">
+                        Reservation Date: {booking.reservation_date}
+                      </Typography>
+                      <Typography variant="body1">
+                        Booking Time: {booking.booking_time}
+                      </Typography>
+                      <Typography variant="body1">
+                        Number of Guests: {booking.number_of_guests}
+                      </Typography>
+                      <Typography variant="body1">
+                        Special Requests: {booking.special_requests}
+                      </Typography>
+                      <Typography variant="h6">Menu Items</Typography>
+                      <List>
+                        {booking.menu_items ? (
+                          booking.menu_items.map((menuItem, itemIndex) => (
+                            <ListItem key={itemIndex}>
+                              <ListItemText
+                                primary={`Item Name: ${menuItem.item_name}`}
+                                secondary={`Quantity: ${menuItem.quantity}`}
+                              />
+                            </ListItem>
+                          ))
+                        ) : (
+                          <Typography>No menu items available</Typography>
+                        )}
+                      </List>
+                      <Box>
+                        {isBookingExpired(booking) ? (
+                          <Typography variant="body2" color="textSecondary">
+                            Cannot Edit This Order
+                          </Typography>
+                        ) : (
+                          <Box>
+                            <Button
+                              onClick={() =>
+                                handleEditBooking(booking.reservation_id)
+                              }
+                              variant="outlined"
+                              color="primary"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() =>
+                                handleDeleteBooking(booking.reservation_id)
+                              }
+                              variant="outlined"
+                              color="secondary"
+                            >
+                              Delete
+                            </Button>
+                          </Box>
+                        )}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
+      </Box>
+      <Footer />
+    </>
   );
 }
 

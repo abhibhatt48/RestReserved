@@ -17,35 +17,56 @@ function Booking() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [numGuests, setNumGuests] = useState();
   const [special_requests, setSpecial_requests] = useState();
-  const [date, setDate] = useState();
+  const [date, setDate] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [tableNumbers, setTableNumbers] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
+  const [timeSlotsData, setTimeSlotsData] = useState();
 
   useEffect(() => {
-    const tableNumbersData = [
-      "Table 1",
-      "Table 2",
-      "Table 3",
-      "Table 4",
-      "Table 5",
-      "Table 6",
-      "Table 7",
-      "Table 8",
-      "Table 9",
-      "Table 10",
-    ];
-    const openingTime = 11;
-    const closingTime = 20;
-    const timeSlotsData = [];
+    const requestBody = {
+      restaurant_id: "789",
+      booking_date: date,
+      opening_time: "10:00",
+      closing_time: "18:00",
+      no_of_tables: "3",
+    };
 
-    // Calculate time slots based on opening and closing times
-    for (let i = openingTime; i < closingTime; i++) {
-      timeSlotsData.push(`${i}:00 - ${i + 1}:00`);
-    }
-    setTableNumbers(tableNumbersData);
-    setTimeSlots(timeSlotsData);
+    // Call the API to get table details
+    axios
+      .post(
+        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-table-details",
+        requestBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((response) => {
+        if (response.status === 200) {
+          console.log(response);
+          const data = JSON.parse(response.data.body);
+
+          // Update tableNumbersData with the table names
+          const tableNumbersData = Object.keys(data.availability);
+          console.log(tableNumbersData);
+          // Set the table numbers
+          setTableNumbers(tableNumbersData);
+
+          // Initially, set tableNumber to the first table in the list
+          setTableNumber(tableNumbersData[0]);
+
+          setTimeSlotsData(data.availability);
+
+          // Set the time slots based on the selected table
+          setTimeSlots(data.availability[tableNumbersData[0]]);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch table details:", error);
+      });
 
     if (fetchMenu) {
       fetch(
@@ -57,10 +78,19 @@ function Booking() {
       // If the checkbox is unchecked, clear the menu items
       setMenuItems([]);
     }
-  }, [fetchMenu]);
+  }, [fetchMenu, date]);
 
   const handleCheckboxChange = () => {
     setFetchMenu(!fetchMenu);
+  };
+
+  const handleTableNumberChange = (e) => {
+    const selectedTable = e.target.value;
+    setTableNumber(selectedTable);
+    console.log("timeSlotsData", timeSlotsData);
+    console.log("selectedTable", selectedTable);
+    // Set the time slots based on the selected table
+    setTimeSlots(timeSlotsData[selectedTable]);
   };
 
   const handleItemSelect = (item) => {
@@ -142,7 +172,7 @@ function Booking() {
             select
             label="Table Number"
             value={tableNumber}
-            onChange={(e) => setTableNumber(e.target.value)}
+            onChange={handleTableNumberChange}
             variant="outlined"
             style={{ width: "100%" }} // Fixed width
           >
