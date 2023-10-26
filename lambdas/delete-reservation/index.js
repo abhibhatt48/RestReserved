@@ -9,7 +9,7 @@ admin.initializeApp({
 const firestore = admin.firestore();
 
 exports.handler = async (event) => {
-  const requestBody = JSON.parse(event.body);
+  const requestBody = event;
   const { reservation_id } = requestBody;
 
   try {
@@ -33,7 +33,7 @@ exports.handler = async (event) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: "Failed to delete reservation" }),
+      body: JSON.stringify({ message: error }),
     };
   }
 };
