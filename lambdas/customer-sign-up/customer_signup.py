@@ -9,7 +9,7 @@ table = dynamodb.Table(table_name)
 
 def lambda_handler(event, context):
     try:
-        body = event['body']
+        body = event
         email_id = body.get('email_id')
         first_name = body.get('first_name')
         last_name = body.get('last_name')
