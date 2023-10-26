@@ -16,6 +16,7 @@ exports.handler = async (event) => {
     reservation_id,
     updated_reservation_date,
     updated_reservation_time,
+    updated_table_number,
     updated_number_of_guests,
     updated_special_requests,
     menu_items,
@@ -27,6 +28,7 @@ exports.handler = async (event) => {
       {
         reservation_date: updated_reservation_date,
         reservation_time: updated_reservation_time,
+        table_number: updated_table_number,
         number_of_guests: updated_number_of_guests,
         special_requests: updated_special_requests,
       },
@@ -67,6 +69,9 @@ async function updateAndSaveReservation(reservationId, updatedData, menuItems) {
     }
     if (updatedData.reservation_time !== undefined) {
       reservationData.reservation_time = updatedData.reservation_time;
+    }
+    if (updatedData.table_number !== undefined) {
+      reservationData.table_number = updatedData.table_number;
     }
     if (updatedData.number_of_guests !== undefined) {
       reservationData.number_of_guests = updatedData.number_of_guests;
@@ -112,6 +117,7 @@ async function updateAndSaveReservation(reservationId, updatedData, menuItems) {
     await reservationRef.update({
       reservation_date: reservationData.reservation_date,
       reservation_time: reservationData.reservation_time,
+      table_number: reservationData.table_number,
       number_of_guests: reservationData.number_of_guests,
       special_requests: reservationData.special_requests,
       menu_items: reservationData.menu_items,
