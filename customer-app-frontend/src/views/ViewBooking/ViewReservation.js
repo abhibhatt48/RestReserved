@@ -1,79 +1,160 @@
-import React, { useEffect, useState } from 'react';
-import './ViewBooking.css';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
+import "./ViewBooking.css";
+
 function ViewBooking() {
-  const [bookingDetails, setBookingDetails] = useState(null);
+  const [user, setUser] = useState({});
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the booking details from your API
-    const fetchBookingDetails = async () => {
+    // Retrieve the user ID from localStorage (you need to implement this)
+    const customer_id = localStorage.getItem("customer_id");
+
+    // Fetch the user's bookings from your API
+    const fetchUserBookings = async (customer_id) => {
       try {
-        const response = await fetch('https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/view', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ reservation_id: 'faf2c8be-ab71-4887-8662-44139bd9f945' }),
-        });
+        const response = await fetch(
+          "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/view",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              customer_id: customer_id,
+            }),
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
-          console.log("dataa", data.body);
-          const parsedData = JSON.parse(data.body);
-          setBookingDetails(parsedData.reservation);
+          if (data && data.body) {
+            const bodyData = JSON.parse(data.body);
+            if (bodyData.reservations) {
+              setBookings(bodyData.reservations);
+            } else {
+              console.error("No reservations found in the response.");
+            }
+          } else {
+            console.error("Invalid data format in API response.");
+          }
+          setLoading(false);
         } else {
-          console.error('Failed to fetch booking details');
+          console.error("Failed to fetch user bookings");
         }
       } catch (error) {
-        console.error('Error fetching booking details:', error);
+        console.error("Error fetching user bookings:", error);
       }
     };
 
-    fetchBookingDetails();
+    if (customer_id) {
+      setUser({ id: customer_id });
+      fetchUserBookings(customer_id);
+    }
   }, []);
 
+  const isBookingExpired = (booking) => {
+    const expirationTime = new Date(booking.booking_expiration_time).getTime();
+    const currentTime = new Date().getTime();
+    return currentTime > expirationTime;
+  };
+
+  const handleEditBooking = (reservationId) => {
+    // Handle edit logic for the selected reservation
+  };
+
+  const handleDeleteBooking = (reservationId) => {
+    // Handle delete logic for the selected reservation
+  };
+
   return (
-    <div className="booking-details-container">
-      <h1>Booking Details</h1>
-      {bookingDetails ? (
-        <div className="booking-details">
-          <div className="detail-row">
-            <p>Reservation Date:</p>
-            <p>{bookingDetails.reservation_date}</p>
-          </div>
-          <div className="detail-row">
-            <p>Booking Time:</p>
-            <p>{bookingDetails.booking_time}</p>
-          </div>
-          <div className="detail-row">
-            <p>Number of Guests:</p>
-            <p>{bookingDetails.number_of_guests}</p>
-          </div>
-          <div className="detail-row">
-            <p>Special Requests:</p>
-            <p>{bookingDetails.special_requests}</p>
-          </div>
-          <h2>Menu Items</h2>
-          <ul className="menu-items-list">
-            {bookingDetails.menu_items ? (
-              bookingDetails.menu_items.map((menuItem, index) => (
-                <li key={index} className="menu-item">
-                  <p>Item Name: {menuItem.item_name}</p>
-                  <p>Quantity: {menuItem.quantity}</p>
-                </li>
-              ))
-            ) : (
-              <p>No menu items available</p>
-            )}
-          </ul>
-          <div className="buttons-container">
-            <button className="edit-button">Edit</button>
-            <button className="delete-button">Delete</button>
-          </div>
-        </div>
+    <Box className="booking-details-container">
+      <Typography variant="h4">User's Bookings</Typography>
+      {loading ? (
+        <Typography>Loading user bookings</Typography>
       ) : (
-        <p>Loading booking details</p>
+        <Box>
+          {bookings.length === 0 ? (
+            <Typography>No bookings found</Typography>
+          ) : (
+            <Box>
+              {bookings.map((booking, index) => (
+                <Card key={index} className="booking-details">
+                  <CardContent>
+                    <Typography variant="h6">
+                      Reservation Date: {booking.reservation_date}
+                    </Typography>
+                    <Typography variant="body1">
+                      Booking Time: {booking.booking_time}
+                    </Typography>
+                    <Typography variant="body1">
+                      Number of Guests: {booking.number_of_guests}
+                    </Typography>
+                    <Typography variant="body1">
+                      Special Requests: {booking.special_requests}
+                    </Typography>
+                    <Typography variant="h6">Menu Items</Typography>
+                    <List>
+                      {booking.menu_items ? (
+                        booking.menu_items.map((menuItem, itemIndex) => (
+                          <ListItem key={itemIndex}>
+                            <ListItemText
+                              primary={`Item Name: ${menuItem.item_name}`}
+                              secondary={`Quantity: ${menuItem.quantity}`}
+                            />
+                          </ListItem>
+                        ))
+                      ) : (
+                        <Typography>No menu items available</Typography>
+                      )}
+                    </List>
+                    <Box>
+                      {isBookingExpired(booking) ? (
+                        <Typography variant="body2" color="textSecondary">
+                          Cannot Edit This Order
+                        </Typography>
+                      ) : (
+                        <Box>
+                          <Button
+                            onClick={() =>
+                              handleEditBooking(booking.reservation_id)
+                            }
+                            variant="outlined"
+                            color="primary"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() =>
+                              handleDeleteBooking(booking.reservation_id)
+                            }
+                            variant="outlined"
+                            color="secondary"
+                          >
+                            Delete
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
+
 export default ViewBooking;
