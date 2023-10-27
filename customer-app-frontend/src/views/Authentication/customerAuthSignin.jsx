@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { auth } from '../../common/firebaseConfig';
 import {signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
+import { TextField, Button, Typography, Box, Paper } from '@mui/material';
 
 const SignInWithEmailForm = () => {
   let navigate = useNavigate();
@@ -69,38 +70,50 @@ const SignInWithEmailForm = () => {
       }
   };
   
-
   return (
-    <div className="App">
-    <div className="signin-form">
-      <h2>Customer Sign In</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Email:</label>
-          <input
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Paper elevation={3} sx={{ padding: '2rem', textAlign: 'center', minWidth: '300px' }}>
+        <Typography variant="h5" gutterBottom>
+          Customer Sign In
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Email"
+            variant="outlined"
             type="email"
             name="email"
-            placeholder="Email"
             value={formData.email}
             onChange={handleChange}
+            error={!!errors.email}
+            helperText={errors.email}
+            margin="normal"
+            required
+            sx={{ width: '100%', marginBottom: '1rem' }}
           />
-          <span className="error-message">{errors.email}</span>
-        </div>
-        <div className="form-group">
-          <label>Password:</label>
-          <input
+          <TextField
+            fullWidth
+            label="Password"
+            variant="outlined"
             type="password"
             name="password"
-            placeholder="Password"
             value={formData.password}
             onChange={handleChange}
+            error={!!errors.password}
+            helperText={errors.password}
+            margin="normal"
+            required
+            sx={{ width: '100%', marginBottom: '1rem' }}
           />
-          <span className="error-message">{errors.password}</span>
-        </div>
-        <button type="submit">Sign in with email</button>
-        <button onClick={handleGoogleSignIn}>Sign in with Google</button>
-      </form>
-    </div></div>
+          <Button variant="contained" type="submit" fullWidth>
+            Sign in with email
+          </Button>
+          <Button variant="contained" onClick={handleGoogleSignIn} sx={{ mt: 2, bgcolor: '#4285F4', color: '#fff',width:"100%" }}>
+            Sign in with Google
+          </Button>
+        </form>
+      </Paper>
+    </Box>
   );
 };
 
