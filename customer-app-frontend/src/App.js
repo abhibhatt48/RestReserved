@@ -6,12 +6,12 @@ import Header from "./common/Header";
 
 function App() {
   return (
-    <div>
-      <Header />
-      <BrowserRouter>
+    <BrowserRouter>
+      <div>
+        <Header />
         <Router />
-      </BrowserRouter>
-    </div>
+      </div>
+    </BrowserRouter>
   );
 }
 
