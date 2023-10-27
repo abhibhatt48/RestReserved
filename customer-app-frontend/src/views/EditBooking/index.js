@@ -10,31 +10,76 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Footer from "../../common/Footer";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
-function Booking() {
+function EditReservation() {
   const [menuItems, setMenuItems] = useState([]);
   const [fetchMenu, setFetchMenu] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [numGuests, setNumGuests] = useState();
   const [special_requests, setSpecial_requests] = useState();
+  const [restaurant_id, setRestaurant_id] = useState();
   const [date, setDate] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [tableNumbers, setTableNumbers] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
   const [timeSlotsData, setTimeSlotsData] = useState();
+  let reservationData = {};
+  const { reservationId } = useParams();
 
-  const location = useLocation();
-  const { restaurant } = location.state || {};
+  useEffect(() => {
+    // Fetch reservation details based on the reservationId
+    console.log(reservationId);
+    axios
+      .post(
+        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-single-booking",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reservationId: reservationId,
+          }),
+        }
+      )
+      .then((response) => {
+        if (response.status === 200) {
+          const res = JSON.parse(response.data.body);
+          reservationData = res.reservation;
+          console.log("reservationData", reservationData);
+          // Pre-populate the form fields with reservation details
+          setNumGuests(reservationData.number_of_guests);
+          setSpecial_requests(reservationData.special_requests);
+          setDate(reservationData.reservation_date);
+          setTableNumber(reservationData.table_number);
+          setTimeSlot(reservationData.reservation_time);
+          setSelectedItems(reservationData.menu_items);
+          setRestaurant_id(reservationData.restaurant_id);
+
+          // Fetch menu items if necessary
+          if (reservationData.fetchMenu) {
+            fetch(
+              `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant_id}`
+            )
+              .then((response) => response.json())
+              .then((data) => setMenuItems(data[0].Items));
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch reservation details:", error);
+      });
+  }, [reservationId]);
 
   useEffect(() => {
     const requestBody = {
-      restaurant_id: restaurant.restaurant_id,
+      restaurant_id: reservationData.restaurant_id,
       booking_date: date,
-      opening_time: restaurant.res_opening_time,
-      closing_time: restaurant.res_closing_time,
-      no_of_tables: restaurant.res_total_tables,
+      opening_time: "07:00",
+      closing_time: "18:00",
+      no_of_tables: "3",
     };
 
     // Call the API to get table details
@@ -55,7 +100,7 @@ function Booking() {
 
           // Update tableNumbersData with the table names
           const tableNumbersData = Object.keys(data.availability);
-          console.log(tableNumbersData);
+          console.log(data);
           // Set the table numbers
           setTableNumbers(tableNumbersData);
 
@@ -74,7 +119,7 @@ function Booking() {
 
     if (fetchMenu) {
       fetch(
-        `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant.restaurant_id}`
+        "https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=12"
       )
         .then((response) => response.json())
         .then((data) => setMenuItems(data[0].Items));
@@ -114,9 +159,10 @@ function Booking() {
 
   const handleBookClick = () => {
     const customer_id = localStorage.getItem("customer_id");
+    const restaurant_id = localStorage.getItem("restaurant_id");
     const requestBody = {
       customer_id,
-      restaurant_id: restaurant.restaurant_id,
+      restaurant_id,
       reservation_date: date,
       reservation_time: timeSlot,
       number_of_guests: numGuests,
@@ -148,7 +194,7 @@ function Booking() {
 
   return (
     <>
-      <Typography variant="h4">Table Booking Page</Typography>
+      <Typography variant="h4">Edit Reservation</Typography>
       <Box m={2} p={2} display="flex" flexDirection="column">
         <Box mb={2}>
           <TextField
@@ -242,4 +288,4 @@ function Booking() {
   );
 }
 
-export default Booking;
+export default EditReservation;
