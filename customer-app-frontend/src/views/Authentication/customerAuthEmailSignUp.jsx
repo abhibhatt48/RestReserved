@@ -3,6 +3,7 @@ import {createUserWithEmailAndPassword } from "firebase/auth";
 import axios from 'axios';
 import { auth } from '../../common/firebaseConfig';
 import { Link } from 'react-router-dom';
+import { TextField, Button, Typography, Container, Grid, Box, Paper } from '@mui/material';
 const SignupForm = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -34,8 +35,23 @@ const SignupForm = () => {
     // Validating form before submission
     const formErrors = {};
     for (const key in formData) {
-      formErrors[key] = formData[key].trim() === '' ? `${key.charAt(0).toUpperCase() + key.slice(1)} is required.` : '';
+      if (key === 'contact') {
+        if (formData[key].trim().length !== 10) {
+          formErrors[key] = 'Contact number must be 10 digits.';
+        } else {
+          formErrors[key] = '';
+        }
+      } else if (key === 'password') {
+        if (formData[key].trim().length < 8) {
+          formErrors[key] = 'Password must be at least 8 characters long.';
+        } else {
+          formErrors[key] = '';
+        }
+      } else {
+        formErrors[key] = formData[key].trim() === '' ? `${key.charAt(0).toUpperCase() + key.slice(1)} is required.` : '';
+      }
     }
+  
 
     setErrors(formErrors);
 
@@ -73,72 +89,86 @@ const SignupForm = () => {
   };
 
   return (
-    <div className="signup-form">
-      <h2>Customer Sign Up</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <span className="error-message">{errors.email}</span>
-        </div>
-        <div className="form-group">
-          <label>Password:</label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-          />
-          <span className="error-message">{errors.password}</span>
-        </div>
-        <div className="form-group">
-          <label>First Name:</label>
-          <input
-            type="text"
-            name="firstName"
-            placeholder="First Name"
-            value={formData.firstName}
-            onChange={handleChange}
-          />
-          <span className="error-message">{errors.firstName}</span>
-        </div>
-        <div className="form-group">
-          <label>Last Name:</label>
-          <input
-            type="text"
-            name="lastName"
-            placeholder="Last Name"
-            value={formData.lastName}
-            onChange={handleChange}
-          />
-          <span className="error-message">{errors.lastName}</span>
-        </div>
-        <div className="form-group">
-          <label>Contact Number:</label>
-          <input
-            type="text"
-            name="contact"
-            placeholder="Contact Number"
-            value={formData.contact}
-            onChange={handleChange}
-          />
-          <span className="error-message">{errors.contact}</span>
-        </div>
-        <button type="submit">Sign Up</button>
-      </form>
-      <div className="signin-section">
-        <Link to="/signin">
-          <button>Already have an account?</button>
-        </Link>
-      </div>
-    </div>
+    <Container component="main" maxWidth="xs">
+      <Paper elevation={3} component={Box} p={3} mt={5}>
+        <Typography variant="h5" component="div" mb={3}>
+          Customer Sign Up
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="Password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                error={!!errors.password}
+                helperText={errors.password}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="First Name"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                error={!!errors.firstName}
+                helperText={errors.firstName}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="Last Name"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                error={!!errors.lastName}
+                helperText={errors.lastName}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="Contact Number"
+                name="contact"
+                value={formData.contact}
+                onChange={handleChange}
+                error={!!errors.contact}
+                helperText={errors.contact}
+              />
+            </Grid>
+          </Grid>
+          <Button type="submit" variant="contained" color="primary" fullWidth mt={2}>
+            Sign Up
+          </Button>
+        </form>
+        <Grid container justifyContent="center" mt={2}>
+          <Grid item>
+            <Link to="/signin">Already registered? Sign In</Link>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Container>
   );
 };
 
