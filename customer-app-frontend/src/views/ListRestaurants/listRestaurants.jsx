@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, CardContent, Typography, Button, Grid } from '@mui/material';
+import { Card,CardMedia, CardContent, Typography, Button,Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const RestaurantList = () => {
@@ -31,6 +31,12 @@ const RestaurantList = () => {
       {restaurants.map((restaurant, index) => (
         <Grid item key={index}>
           <Card variant="outlined">
+          <CardMedia
+              component="img"
+              height="140"
+              image={restaurant.res_image_url} // URL for the restaurant image from res_image_url field
+              alt={restaurant.res_name}
+            />
             <CardContent>
               <Typography variant="h6" component="div">
                 {restaurant.res_name}

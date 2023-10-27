@@ -12,7 +12,6 @@ def lambda_handler(event, context):
         logging.info("Scanning the DynamoDB table to fetch all restaurants")
         response = table.scan()
         list_of_restaurants = response['Items']
-        logging.info("Response received",list_of_restaurants)
         
         # Return the list of restaurants as a response
         return {
