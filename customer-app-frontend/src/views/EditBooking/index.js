@@ -31,8 +31,6 @@ function EditReservation() {
   const { reservationId } = useParams();
 
   useEffect(() => {
-    // Fetch reservation details based on the reservationId
-    console.log(reservationId);
     axios
       .post(
         "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-single-booking",
@@ -49,77 +47,53 @@ function EditReservation() {
       .then((response) => {
         if (response.status === 200) {
           const res = JSON.parse(response.data.body);
-          reservationData = res.reservation;
+          const reservationData = res.reservation;
           console.log("reservationData", reservationData);
-          // Pre-populate the form fields with reservation details
           setNumGuests(reservationData.number_of_guests);
           setSpecial_requests(reservationData.special_requests);
           setDate(reservationData.reservation_date);
           setTableNumber(reservationData.table_number);
           setTimeSlot(reservationData.reservation_time);
-          setSelectedItems(reservationData.menu_items);
           setRestaurant_id(reservationData.restaurant_id);
-          // Fetch menu items if necessary
-          if (fetchMenu) {
-            console.log("reservationData", reservationData);
-            fetch(
-              `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${reservationData.restaurant_id}`
+          setSelectedItems(reservationData.menu_items);
+
+          // Get table details after fetching reservation data
+          const requestBody = {
+            restaurant_id: reservationData.restaurant_id,
+            booking_date: reservationData.reservation_date,
+            opening_time: "07:00",
+            closing_time: "18:00",
+            no_of_tables: "10",
+          };
+
+          axios
+            .post(
+              "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-table-details",
+              requestBody,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              }
             )
-              .then((response) => response.json())
-              .then((data) => setMenuItems(data[0].Items));
-          }
+            .then((response) => {
+              if (response.status === 200) {
+                const data = JSON.parse(response.data.body);
+                const tableNumbersData = Object.keys(data.availability);
+                setTableNumbers(tableNumbersData);
+                setTableNumber(tableNumbersData[0]);
+                setTimeSlotsData(data.availability);
+                setTimeSlots(data.availability[tableNumbersData[0]]);
+              }
+            })
+            .catch((error) => {
+              console.error("Failed to fetch table details:", error);
+            });
         }
       })
       .catch((error) => {
         console.error("Failed to fetch reservation details:", error);
       });
-  }, [reservationId]);
-
-  useEffect(() => {
-    console.log("reservationDataat123", reservationData);
-    const requestBody = {
-      restaurant_id: reservationData.restaurant_id,
-      booking_date: date,
-      opening_time: "07:00",
-      closing_time: "18:00",
-      no_of_tables: "3",
-    };
-
-    // Call the API to get table details
-    axios
-      .post(
-        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-table-details",
-        requestBody,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((response) => {
-        if (response.status === 200) {
-          console.log(response);
-          const data = JSON.parse(response.data.body);
-
-          // Update tableNumbersData with the table names
-          const tableNumbersData = Object.keys(data.availability);
-          console.log(data);
-          // Set the table numbers
-          setTableNumbers(tableNumbersData);
-
-          // Initially, set tableNumber to the first table in the list
-          setTableNumber(tableNumbersData[0]);
-
-          setTimeSlotsData(data.availability);
-
-          // Set the time slots based on the selected table
-          setTimeSlots(data.availability[tableNumbersData[0]]);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to fetch table details:", error);
-      });
-
     if (fetchMenu) {
       fetch(
         `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant_id}`
@@ -138,7 +112,7 @@ function EditReservation() {
       // If the checkbox is unchecked, clear the menu items
       setMenuItems([]);
     }
-  }, [fetchMenu, date]);
+  }, [reservationId, fetchMenu]);
 
   const handleCheckboxChange = () => {
     setFetchMenu(!fetchMenu);
