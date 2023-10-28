@@ -10,7 +10,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Footer from "../../common/Footer";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 function EditReservation() {
   const [menuItems, setMenuItems] = useState([]);
@@ -24,7 +24,9 @@ function EditReservation() {
   const [timeSlot, setTimeSlot] = useState("");
   const [tableNumbers, setTableNumbers] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
-  const [timeSlotsData, setTimeSlotsData] = useState();
+  const [timeSlotsData, setTimeSlotsData] = useState({});
+  const [itemQuantities, setItemQuantities] = useState({});
+  const navigate = useNavigate();
   let reservationData = {};
   const { reservationId } = useParams();
 
@@ -57,11 +59,11 @@ function EditReservation() {
           setTimeSlot(reservationData.reservation_time);
           setSelectedItems(reservationData.menu_items);
           setRestaurant_id(reservationData.restaurant_id);
-
           // Fetch menu items if necessary
-          if (reservationData.fetchMenu) {
+          if (fetchMenu) {
+            console.log("reservationData", reservationData);
             fetch(
-              `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant_id}`
+              `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${reservationData.restaurant_id}`
             )
               .then((response) => response.json())
               .then((data) => setMenuItems(data[0].Items));
@@ -74,6 +76,7 @@ function EditReservation() {
   }, [reservationId]);
 
   useEffect(() => {
+    console.log("reservationDataat123", reservationData);
     const requestBody = {
       restaurant_id: reservationData.restaurant_id,
       booking_date: date,
@@ -119,10 +122,18 @@ function EditReservation() {
 
     if (fetchMenu) {
       fetch(
-        `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${reservationData.restaurant_id}`
+        `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant_id}`
       )
         .then((response) => response.json())
-        .then((data) => setMenuItems(data[0].Items));
+        .then((data) => {
+          // Store the quantity of each item
+          const quantities = {};
+          data[0].Items.forEach((item) => {
+            quantities[item.ItemID] = 0;
+          });
+          setMenuItems(data[0].Items);
+          setItemQuantities(quantities);
+        });
     } else {
       // If the checkbox is unchecked, clear the menu items
       setMenuItems([]);
@@ -143,18 +154,24 @@ function EditReservation() {
   };
 
   const handleItemSelect = (item) => {
-    // Check if the item is already in the selectedItems array
-    const index = selectedItems.findIndex((i) => i.item_id === item.item_id);
+    const itemId = item.ItemID;
 
-    if (index !== -1) {
-      // If it's already selected, update the quantity
-      const updatedItems = [...selectedItems];
-      updatedItems[index].quantity = item.quantity;
-      setSelectedItems(updatedItems);
+    const updatedItems = { ...selectedItems };
+
+    if (itemId in itemQuantities) {
+      // Update the quantity in the state
+      updatedItems[itemId] = { ...item, quantity: itemQuantities[itemId] + 1 };
+      setItemQuantities({
+        ...itemQuantities,
+        [itemId]: itemQuantities[itemId] + 1,
+      });
     } else {
-      // If it's not selected, add it to the array
-      setSelectedItems([...selectedItems, item]);
+      updatedItems[itemId] = { ...item, quantity: 1 };
+      setItemQuantities({ ...itemQuantities, [itemId]: 1 });
     }
+
+    // Update the selectedItems state with the updated item
+    setSelectedItems(updatedItems);
   };
 
   const handleBookClick = () => {
@@ -174,7 +191,7 @@ function EditReservation() {
     // Make the API call using Axios
     axios
       .post(
-        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/book",
+        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/edit",
         requestBody,
         {
           headers: {
@@ -185,10 +202,14 @@ function EditReservation() {
       .then((response) => {
         // Handle the API response, e.g., show a success message
         console.log("Booking successful:", response.data);
+        alert("Update Successful");
+        navigate("/listrestaurants");
       })
       .catch((error) => {
         // Handle any errors, e.g., show an error message
         console.error("Booking error:", error);
+        alert("Update Unuccessful");
+        navigate("/listrestaurants");
       });
   };
 
@@ -272,14 +293,18 @@ function EditReservation() {
           <Grid container spacing={2}>
             {menuItems.map((item) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={item.ItemID}>
-                <MenuItemCard item={item} onItemSelect={handleItemSelect} />
+                <MenuItemCard
+                  item={item}
+                  onItemSelect={handleItemSelect}
+                  quantity={itemQuantities[item.ItemID] || 0} // Show the previously booked quantity
+                />
               </Grid>
             ))}
           </Grid>
         )}
         <Box mt={2}>
           <Button variant="contained" color="primary" onClick={handleBookClick}>
-            Book
+            Update
           </Button>
         </Box>
       </Box>
