@@ -12,6 +12,7 @@ import {
 import "./ViewBooking.css";
 import Footer from "../../common/Footer";
 import { useNavigate } from "react-router-dom";
+import Loader from "../../common/Loader";
 
 function ViewBooking() {
   const navigate = useNavigate();
@@ -78,6 +79,7 @@ function ViewBooking() {
 
   const handleDeleteBooking = async (reservationId) => {
     try {
+      setLoading(true);
       const response = await fetch(
         "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/delete",
         {
@@ -93,14 +95,17 @@ function ViewBooking() {
 
       if (response.ok) {
         // Handle successful deletion, e.g., remove the deleted booking from the state
+        setLoading(false);
         const updatedBookings = bookings.filter(
           (booking) => booking.reservation_id !== reservationId
         );
         setBookings(updatedBookings);
       } else {
+        setLoading(false);
         console.error("Failed to delete the booking");
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error deleting the booking:", error);
     }
   };
@@ -110,7 +115,7 @@ function ViewBooking() {
       <Box className="booking-details-container">
         <Typography variant="h4">User's Bookings</Typography>
         {loading ? (
-          <Typography>Loading user bookings</Typography>
+          <Loader />
         ) : (
           <Box>
             {bookings.length === 0 ? (
