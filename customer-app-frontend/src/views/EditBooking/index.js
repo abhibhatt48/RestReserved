@@ -119,7 +119,7 @@ function EditReservation() {
 
     if (fetchMenu) {
       fetch(
-        "https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=12"
+        `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${reservationData.restaurant_id}`
       )
         .then((response) => response.json())
         .then((data) => setMenuItems(data[0].Items));
