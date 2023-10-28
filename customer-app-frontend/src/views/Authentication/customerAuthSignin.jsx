@@ -43,7 +43,7 @@ const SignInWithEmailForm = () => {
      try{
         const userCredential = signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        localStorage.setItem("email", email);
+        localStorage.setItem("customer_id", email);
         console.log('User Signed in successfully:', user);
         navigate("/listrestaurants");
 
@@ -59,7 +59,7 @@ const SignInWithEmailForm = () => {
       try{
         const provider = new GoogleAuthProvider();
         const result=await signInWithPopup(auth, provider);
-        localStorage.setItem("email", result.user.email);
+        localStorage.setItem("customer_id", result.user.email);
         // User signed in with Google
         console.log('User signed in with Google',result.user);
         navigate("/listrestaurants");

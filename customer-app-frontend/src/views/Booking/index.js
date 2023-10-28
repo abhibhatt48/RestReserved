@@ -10,6 +10,8 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Footer from "../../common/Footer";
 import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
+import Loader from "../../common/Loader";
 
 function Booking() {
   const [menuItems, setMenuItems] = useState([]);
@@ -22,63 +24,80 @@ function Booking() {
   const [timeSlot, setTimeSlot] = useState("");
   const [tableNumbers, setTableNumbers] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
-  const [timeSlotsData, setTimeSlotsData] = useState();
+  const [timeSlotsData, setTimeSlotsData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { restaurant } = location.state || {};
 
   useEffect(() => {
-    const requestBody = {
-      restaurant_id: "789",
-      booking_date: date,
-      opening_time: "10:00",
-      closing_time: "18:00",
-      no_of_tables: "3",
-    };
+    const fetchTableDetails = async () => {
+      setLoading(true);
 
-    // Call the API to get table details
-    axios
-      .post(
-        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-table-details",
-        requestBody,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((response) => {
+      try {
+        const requestBody = {
+          restaurant_id: restaurant.restaurant_id,
+          booking_date: date,
+          opening_time: restaurant.res_opening_time,
+          closing_time: restaurant.res_closing_time,
+          no_of_tables: restaurant.res_total_tables,
+        };
+
+        // Call the API to get table details
+        const response = await axios.post(
+          "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-table-details",
+          requestBody,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
         if (response.status === 200) {
-          console.log(response);
           const data = JSON.parse(response.data.body);
 
-          // Update tableNumbersData with the table names
           const tableNumbersData = Object.keys(data.availability);
-          console.log(tableNumbersData);
-          // Set the table numbers
           setTableNumbers(tableNumbersData);
-
-          // Initially, set tableNumber to the first table in the list
           setTableNumber(tableNumbersData[0]);
-
           setTimeSlotsData(data.availability);
-
-          // Set the time slots based on the selected table
           setTimeSlots(data.availability[tableNumbersData[0]]);
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Failed to fetch table details:", error);
-      });
+      }
+
+      setLoading(false);
+    };
+
+    fetchTableDetails();
+  }, [fetchMenu, date, restaurant]);
+
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      setLoading(true);
+
+      try {
+        const response = await fetch(
+          `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant.restaurant_id}`
+        );
+
+        const data = await response.json();
+        setMenuItems(data[0].Items);
+      } catch (error) {
+        console.error("Failed to fetch menu items:", error);
+      }
+
+      setLoading(false);
+    };
 
     if (fetchMenu) {
-      fetch(
-        "https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=12"
-      )
-        .then((response) => response.json())
-        .then((data) => setMenuItems(data[0].Items));
+      fetchMenuItems();
     } else {
-      // If the checkbox is unchecked, clear the menu items
       setMenuItems([]);
     }
-  }, [fetchMenu, date]);
+  }, [fetchMenu, restaurant]);
 
   const handleCheckboxChange = () => {
     setFetchMenu(!fetchMenu);
@@ -87,33 +106,27 @@ function Booking() {
   const handleTableNumberChange = (e) => {
     const selectedTable = e.target.value;
     setTableNumber(selectedTable);
-    console.log("timeSlotsData", timeSlotsData);
-    console.log("selectedTable", selectedTable);
-    // Set the time slots based on the selected table
     setTimeSlots(timeSlotsData[selectedTable]);
   };
 
   const handleItemSelect = (item) => {
-    // Check if the item is already in the selectedItems array
     const index = selectedItems.findIndex((i) => i.item_id === item.item_id);
 
     if (index !== -1) {
-      // If it's already selected, update the quantity
       const updatedItems = [...selectedItems];
       updatedItems[index].quantity = item.quantity;
       setSelectedItems(updatedItems);
     } else {
-      // If it's not selected, add it to the array
       setSelectedItems([...selectedItems, item]);
     }
   };
 
   const handleBookClick = () => {
+    setLoading(true);
     const customer_id = localStorage.getItem("customer_id");
-    const restaurant_id = localStorage.getItem("restaurant_id");
     const requestBody = {
       customer_id,
-      restaurant_id,
+      restaurant_id: restaurant.restaurant_id,
       reservation_date: date,
       reservation_time: timeSlot,
       number_of_guests: numGuests,
@@ -122,7 +135,6 @@ function Booking() {
       menu_items: selectedItems,
     };
 
-    // Make the API call using Axios
     axios
       .post(
         "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/book",
@@ -134,11 +146,13 @@ function Booking() {
         }
       )
       .then((response) => {
-        // Handle the API response, e.g., show a success message
         console.log("Booking successful:", response.data);
+        setLoading(false);
+        alert("Booking Successful");
+        navigate("/listrestaurants");
       })
       .catch((error) => {
-        // Handle any errors, e.g., show an error message
+        setLoading(false);
         console.error("Booking error:", error);
       });
   };
@@ -154,7 +168,7 @@ function Booking() {
             value={numGuests}
             onChange={(e) => setNumGuests(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           />
         </Box>
         <Box mb={2}>
@@ -164,7 +178,7 @@ function Booking() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           />
         </Box>
         <Box mb={2}>
@@ -174,7 +188,7 @@ function Booking() {
             value={tableNumber}
             onChange={handleTableNumberChange}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           >
             {tableNumbers.map((option) => (
               <MenuItem key={option} value={option}>
@@ -190,7 +204,7 @@ function Booking() {
             value={timeSlot}
             onChange={(e) => setTimeSlot(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           >
             {timeSlots.map((option) => (
               <MenuItem key={option} value={option}>
@@ -206,7 +220,7 @@ function Booking() {
             value={special_requests}
             onChange={(e) => setSpecial_requests(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           />
         </Box>
         <FormControlLabel
@@ -219,7 +233,9 @@ function Booking() {
           }
           label="Add Items From Menu to this Order (Optional)"
         />
-        {fetchMenu && (
+        {loading ? (
+          <Loader />
+        ) : (
           <Grid container spacing={2}>
             {menuItems.map((item) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={item.ItemID}>
