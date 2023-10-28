@@ -11,8 +11,10 @@ import {
 } from "@mui/material";
 import "./ViewBooking.css";
 import Footer from "../../common/Footer";
+import { useNavigate } from "react-router-dom";
 
 function ViewBooking() {
+  const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ function ViewBooking() {
   };
 
   const handleEditBooking = (reservationId) => {
-    // Handle edit logic for the selected reservation
+    navigate(`/edit/${reservationId}`);
   };
 
   const handleDeleteBooking = async (reservationId) => {

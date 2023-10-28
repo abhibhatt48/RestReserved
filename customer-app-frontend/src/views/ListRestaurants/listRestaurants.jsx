@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, CardContent, Typography, Button,Grid } from '@mui/material';
+import { Card,CardMedia, CardContent, Typography, Button,Grid } from '@mui/material';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const RestaurantList = () => {
   const [restaurants, setRestaurants] = useState([]);
+  const navigate = useNavigate(); // Get the navigation function
 
   useEffect(() => {
-    // Fetching restaurant data from the Lambda function
     const fetchRestaurants = async () => {
       try {
         const response = await axios.get('https://brene180q1.execute-api.us-east-1.amazonaws.com/dev/list-restaurants');
@@ -16,14 +17,26 @@ const RestaurantList = () => {
       }
     };
 
-    fetchRestaurants(); // Calling the fetchRestaurants function when the component mounts
-  }, []); // Empty dependency array to make sure that this effect runs once after the initial render
+    fetchRestaurants();
+  }, []);
+
+  const handleReservationClick = (restaurant) => {
+    // Navigate to the '/book' route and pass the 'restaurant' object as state
+    console.log(restaurant);
+    navigate('/book', { state: { restaurant } });
+  };
 
   return (
     <Grid container spacing={2} justifyContent="center">
       {restaurants.map((restaurant, index) => (
         <Grid item key={index}>
           <Card variant="outlined">
+          <CardMedia
+              component="img"
+              height="140"
+              image={restaurant.res_image_url} // URL for the restaurant image from res_image_url field
+              alt={restaurant.res_name}
+            />
             <CardContent>
               <Typography variant="h6" component="div">
                 {restaurant.res_name}
@@ -32,7 +45,7 @@ const RestaurantList = () => {
               <Typography color="text.secondary">
                 Opening Time: {restaurant.res_opening_time} - Closing Time: {restaurant.res_closing_time}
               </Typography>
-              <Button variant="contained" color="primary">
+              <Button variant="contained" color="primary" onClick={() => handleReservationClick(restaurant)}>
                 Make a Reservation
               </Button>
             </CardContent>
