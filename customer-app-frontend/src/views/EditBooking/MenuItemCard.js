@@ -9,7 +9,6 @@ import RemoveIcon from "@mui/icons-material/Remove";
 
 function MenuItemCard({ item, onItemSelect }) {
   const [quantity, setQuantity] = useState(0);
-
   const handleIncrement = () => {
     setQuantity(quantity + 1);
     onItemSelect({

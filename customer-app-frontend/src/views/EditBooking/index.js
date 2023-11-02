@@ -48,7 +48,6 @@ function EditReservation() {
         if (response.status === 200) {
           const res = JSON.parse(response.data.body);
           const reservationData = res.reservation;
-          console.log("reservationData", reservationData);
           setNumGuests(reservationData.number_of_guests);
           setSpecial_requests(reservationData.special_requests);
           setDate(reservationData.reservation_date);
@@ -56,7 +55,21 @@ function EditReservation() {
           setTimeSlot(reservationData.reservation_time);
           setRestaurant_id(reservationData.restaurant_id);
           setSelectedItems(reservationData.menu_items);
+          // Update selected items based on reservation data
+          const selectedItemsData = {};
+          const itemQuantitiesData = {};
+          if (
+            Array.isArray(reservationData.menu_items) &&
+            reservationData.menu_items.length > 0
+          ) {
+            for (const item of reservationData.menu_items) {
+              selectedItemsData[item.item_id] = item;
+              itemQuantitiesData[item.item_id] = item.quantity;
+            }
+          }
 
+          setSelectedItems(selectedItemsData);
+          setItemQuantities(itemQuantitiesData);
           // Get table details after fetching reservation data
           const requestBody = {
             restaurant_id: reservationData.restaurant_id,
@@ -77,42 +90,71 @@ function EditReservation() {
               }
             )
             .then((response) => {
-              if (response.status === 200) {
-                const data = JSON.parse(response.data.body);
-                const tableNumbersData = Object.keys(data.availability);
-                setTableNumbers(tableNumbersData);
-                setTableNumber(tableNumbersData[0]);
-                setTimeSlotsData(data.availability);
-                setTimeSlots(data.availability[tableNumbersData[0]]);
+              const data = JSON.parse(response.data.body);
+              const tableDetails = data.availability;
+
+              const currentBookingTable = reservationData.table_number;
+              const currentBookingTimeSlot = reservationData.reservation_time;
+
+              if (currentBookingTable && currentBookingTimeSlot) {
+                if (tableDetails[currentBookingTable]) {
+                  tableDetails[currentBookingTable].push(
+                    currentBookingTimeSlot
+                  );
+                } else {
+                  tableDetails[currentBookingTable] = [currentBookingTimeSlot];
+                }
+
+                tableDetails[currentBookingTable].sort();
               }
+
+              const tableNumbersData = Object.keys(tableDetails);
+              setTableNumbers(tableNumbersData);
+              setTableNumber(reservationData.table_number);
+              setTimeSlotsData(tableDetails);
+              setTimeSlots(data.availability[reservationData.table_number]);
             })
             .catch((error) => {
               console.error("Failed to fetch table details:", error);
             });
+          if (
+            Array.isArray(reservationData.menu_items) &&
+            reservationData.menu_items.length > 0
+          ) {
+            setFetchMenu(true);
+            axios
+              .post(
+                `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${reservationData.restaurant_id}`
+              )
+              .then((response) => {
+                const data = response.data;
+                const quantities = {};
+                data[0].Items.forEach((item) => {
+                  quantities[item.ItemID] = 0;
+
+                  reservationData.menu_items.forEach((reservationItem) => {
+                    if (item.ItemID === reservationItem.item_id) {
+                      quantities[item.ItemID] = reservationItem.quantity;
+                    }
+                  });
+                });
+
+                setMenuItems(data[0].Items);
+                setItemQuantities(quantities);
+                console.log("itemQuantities2", itemQuantities);
+              })
+              .catch((error) => {
+                console.error("Failed to fetch menu items:", error);
+              });
+          } else {
+            setMenuItems([]);
+          }
         }
       })
       .catch((error) => {
         console.error("Failed to fetch reservation details:", error);
       });
-    if (fetchMenu) {
-      fetch(
-        `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant_id}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          // Store the quantity of each item
-          const quantities = {};
-          data[0].Items.forEach((item) => {
-            quantities[item.ItemID] = 0;
-          });
-          setMenuItems(data[0].Items);
-          setItemQuantities(quantities);
-        });
-    } else {
-      // If the checkbox is unchecked, clear the menu items
-      setMenuItems([]);
-    }
-  }, [reservationId, fetchMenu]);
+  }, [reservationId]);
 
   const handleCheckboxChange = () => {
     setFetchMenu(!fetchMenu);
@@ -121,34 +163,29 @@ function EditReservation() {
   const handleTableNumberChange = (e) => {
     const selectedTable = e.target.value;
     setTableNumber(selectedTable);
-    console.log("timeSlotsData", timeSlotsData);
-    console.log("selectedTable", selectedTable);
-    // Set the time slots based on the selected table
     setTimeSlots(timeSlotsData[selectedTable]);
   };
 
   const handleItemSelect = (item) => {
-    const itemId = item.ItemID;
-
+    const itemId = item.item_id;
+    console.log("item", item);
     const updatedItems = { ...selectedItems };
 
-    if (itemId in itemQuantities) {
-      // Update the quantity in the state
+    if (itemQuantities[itemId] !== undefined) {
       updatedItems[itemId] = { ...item, quantity: itemQuantities[itemId] + 1 };
       setItemQuantities({
         ...itemQuantities,
         [itemId]: itemQuantities[itemId] + 1,
       });
+      console.log("itemQuantities1", itemQuantities);
     } else {
       updatedItems[itemId] = { ...item, quantity: 1 };
       setItemQuantities({ ...itemQuantities, [itemId]: 1 });
     }
-
-    // Update the selectedItems state with the updated item
     setSelectedItems(updatedItems);
   };
 
-  const handleBookClick = () => {
+  const handleEditClick = () => {
     const customer_id = localStorage.getItem("customer_id");
     const restaurant_id = localStorage.getItem("restaurant_id");
     const requestBody = {
@@ -174,13 +211,11 @@ function EditReservation() {
         }
       )
       .then((response) => {
-        // Handle the API response, e.g., show a success message
         console.log("Booking successful:", response.data);
         alert("Update Successful");
         navigate("/listrestaurants");
       })
       .catch((error) => {
-        // Handle any errors, e.g., show an error message
         console.error("Booking error:", error);
         alert("Update Unuccessful");
         navigate("/listrestaurants");
@@ -253,7 +288,7 @@ function EditReservation() {
             style={{ width: "100%" }} // Fixed width
           />
         </Box>
-        <FormControlLabel
+        {/* <FormControlLabel
           control={
             <Checkbox
               checked={fetchMenu}
@@ -262,7 +297,7 @@ function EditReservation() {
             />
           }
           label="Add Items From Menu to this Order (Optional)"
-        />
+        /> */}
         {fetchMenu && (
           <Grid container spacing={2}>
             {menuItems.map((item) => (
@@ -277,7 +312,7 @@ function EditReservation() {
           </Grid>
         )}
         <Box mt={2}>
-          <Button variant="contained" color="primary" onClick={handleBookClick}>
+          <Button variant="contained" color="primary" onClick={handleEditClick}>
             Update
           </Button>
         </Box>

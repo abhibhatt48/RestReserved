@@ -72,7 +72,7 @@ function Booking() {
     };
 
     fetchTableDetails();
-  }, [fetchMenu, date, restaurant]);
+  }, [date, restaurant]);
 
   useEffect(() => {
     const fetchMenuItems = async () => {

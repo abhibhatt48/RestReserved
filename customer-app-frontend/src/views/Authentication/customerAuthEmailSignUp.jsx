@@ -80,6 +80,7 @@ const SignupForm = () => {
         }
         console.log('User created successfully:', user);
         console.log('User created successfully');
+        alert("Registration Successful")
       } catch (error) {
         const errorCode = error.code;
         const errorMessage = error.message;
