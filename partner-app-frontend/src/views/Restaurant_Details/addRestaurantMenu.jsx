@@ -8,7 +8,7 @@ const AddMenuItemForm = () => {
     itemName: '',
     description: '',
     category: '',
-    image: null,
+    res_image_base64: null
   });
 
   let locate=useLocation();
@@ -28,7 +28,13 @@ const AddMenuItemForm = () => {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setFormData({ ...formData, image: file });
+      const reader = new FileReader();
+      //Converting image to base64 string
+      reader.readAsDataURL(file);
+      //Extracting base64 string of the image
+      reader.onloadend = () => {
+        setFormData({ ...formData, res_image_base64: reader.result.split(',')[1] });
+      };
     }
   };
 
@@ -57,7 +63,7 @@ const AddMenuItemForm = () => {
       itemName: '',
       description: '',
       category: '',
-      image: null,
+      res_image_base64: null,
     });
   };
 
@@ -97,7 +103,7 @@ const AddMenuItemForm = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Category (Comma-separated like vegan, dairy-free etc.)"
+              label="Category (separate multiple values with comma like vegan, dairy-free etc.)"
               name="category"
               fullWidth
               onChange={handleInputChange}
