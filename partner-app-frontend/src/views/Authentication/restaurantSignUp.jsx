@@ -4,6 +4,8 @@ import axios from 'axios';
 import { auth } from '../../common/firebaseConfig';
 import { Link } from 'react-router-dom';
 import { TextField, Button, Typography, Container, Grid, Box, Paper } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+
 const SignupForm = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -12,6 +14,7 @@ const SignupForm = () => {
     lastName: '',
     contact: ''
   });
+  let navigate = useNavigate();
 
   const [errors, setErrors] = useState({});
 
@@ -110,8 +113,10 @@ const SignupForm = () => {
           } catch (error) {
             console.error('Error calling API:', error);
           }
-        console.log('Restaurant registered successfully:', user);
-        alert("Restaurant registered successfully:", user)
+          console.log("Restuarant owner details stored sucessfully.")
+          navigate("/addRestaurantDetails",{ state: { email } });
+        //console.log('Restaurant registered successfully:', user);
+        //alert("Restaurant registered successfully:", user)
       }
      } catch (error) {
         const errorCode = error.code;
