@@ -66,5 +66,5 @@ def upload_to_s3_bucket(image_content, image_key):
         s3.put_object(Body=image_content, Bucket=s3_bucket, Key=image_key)
         return f'https://{s3_bucket}.s3.amazonaws.com/{image_key}'
     except ClientError as e:
-        print(f"Error uploading to S3: {str(e)}")
+        logging.info(f"Error uploading to S3: {str(e)}")
         return None
