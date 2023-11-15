@@ -115,8 +115,6 @@ const SignupForm = () => {
           }
           console.log("Restuarant owner details stored sucessfully.")
           navigate("/addRestaurantDetails",{ state: { email } });
-        //console.log('Restaurant registered successfully:', user);
-        //alert("Restaurant registered successfully:", user)
       }
      } catch (error) {
         const errorCode = error.code;

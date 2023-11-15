@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Button, TextField, Typography, Container, Grid,InputLabel,Select,MenuItem } from '@mui/material';
 import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const RestaurantDetailsForm = () => {
   let locate=useLocation();
+  let navigate = useNavigate();
   let email="";
   if (locate.state && locate.state.email) 
   {
@@ -66,15 +68,15 @@ const RestaurantDetailsForm = () => {
       const response = await axios.post('https://wzdh0w0265.execute-api.us-east-1.amazonaws.com/prod/storeRestaurantDetails',
       {
         "email":email,
-        "name":res_name,
+        "name":res_name.toLowerCase(),
         "closing_time":res_closing_time,
         "opening_time":res_opening_time,
-        "address":res_address,
+        "address":res_address.toLowerCase(),
         "total_tables": res_total_tables,
         "image_base64":res_image_base64
       });
       console.log(response.data);
-      alert("Restaurant details submitted successfully!")
+      navigate("/addResaurantMenu",{ state: { email,res_name } });
     } catch (error) {
       alert("Error submitting restaurant details")
       console.error('Error submitting form:', error);
