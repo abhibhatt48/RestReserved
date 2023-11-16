@@ -4,7 +4,7 @@ from botocore.exceptions import ClientError
 import logging 
 
 logging.basicConfig(level=logging.INFO)
-dynamodb = boto3.client('dynamodb')
+dynamodb = boto3.resource('dynamodb')
 table_name = "restaurant_menu_details"
 table = dynamodb.Table(table_name)
 s3 = boto3.client('s3')
@@ -54,27 +54,22 @@ def lambda_handler(event, context):
         # Creating menu item as a dictionary
         logging.info("Creating menu item as a dictionary")
         menu_item = {
-                'M': {
-                    'category': {'L': item_category_list},
-                    'description': {'S': item_description},
-                    'item_id': {'S': item_id},
-                    'item_image_url': {'S': item_image_url},
-                    'item_name': {'S': item_name},
-                    'item_discount': {'BOOL': item_discount},
-                    'item_discount_rate': {'S': item_discount_rate}
-                }
-        }
-        menu_item_list={"L":[menu_item]}
+                    'item_id': item_id,
+                    'item_name': item_name,
+                    'category':item_category_list,
+                    'description':item_description,
+                    'item_image_url': item_image_url,
+                    'item_discount':item_discount,
+                    'item_discount_rate':item_discount_rate}
         
         # Creating DynamoDB formatted for restaurant menu
-        logging.info("Creating DynamoDB formatted for restaurant menu and inserting the item")
-        update_expression = "SET #res_id = :res_id,#menu_discount = :menu_discount, #menu_discount_rate = :menu_discount_rate, #items = list_append(#items,:items)"
+        update_expression = "SET #res_id = :res_id,#menu_discount = :menu_discount, #menu_discount_rate = :menu_discount_rate,#items = list_append(if_not_exists(#items, :empty_list), :items)"
         expression_attribute_names = {'#res_id' : 'res_id','#menu_discount': 'menu_discount', '#menu_discount_rate': 'menu_discount_rate', '#items': 'items'}
-        expression_attribute_values = {':res_id' : {'S': res_id},':menu_discount': {'BOOL': menu_discount}, ':menu_discount_rate': {'S': menu_discount_rate}, ':items': {'L':menu_item_list}}
+        expression_attribute_values = {':res_id' : res_id,':menu_discount': menu_discount, ':menu_discount_rate': menu_discount_rate,':items': [menu_item], ':empty_list': []}
         # Update DynamoDB item
-        response = dynamodb.update_item(
+        response = table.update_item(
             TableName=table_name,
-            Key={'menu_id': {'S': menu_id}},
+            Key={'menu_id':menu_id},
             UpdateExpression=update_expression,
             ExpressionAttributeNames=expression_attribute_names,
             ExpressionAttributeValues=expression_attribute_values,
