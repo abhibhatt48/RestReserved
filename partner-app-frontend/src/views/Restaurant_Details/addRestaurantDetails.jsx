@@ -76,7 +76,12 @@ const RestaurantDetailsForm = () => {
         "image_base64":res_image_base64
       });
       console.log(response.data);
-      navigate("/addResaurantMenu",{ state: { email,res_name } });
+      if(response.data==true){
+        navigate("/addRestaurantMenu",{ state: { email,res_name } });
+      }
+      else{
+        return false;
+      }
     } catch (error) {
       alert("Error submitting restaurant details")
       console.error('Error submitting form:', error);

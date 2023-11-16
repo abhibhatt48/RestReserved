@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Button, TextField, Typography, Container, Grid, InputLabel } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 const AddMenuItemForm = () => {
   const [formData, setFormData] = useState({
     itemName: '',
     description: '',
     category: '',
-    res_image_base64: null
+    item_image_base64: null
   });
 
   let locate=useLocation();
@@ -33,7 +34,7 @@ const AddMenuItemForm = () => {
       reader.readAsDataURL(file);
       //Extracting base64 string of the image
       reader.onloadend = () => {
-        setFormData({ ...formData, res_image_base64: reader.result.split(',')[1] });
+        setFormData({ ...formData, item_image_base64: reader.result.split(',')[1] });
       };
     }
   };
@@ -43,17 +44,33 @@ const AddMenuItemForm = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFormSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
-    // Validate category to ensure it is comma-separated
+    // Validating category input to ensure it is comma-separated
     const categoryArray = formData.category.split(',').map((cat) => cat.trim());
     if (categoryArray.length > 1) {
-      // Continue with form submission
       console.log('Valid categories:', categoryArray);
-      // Add your logic to handle the form data submission
-    } else {
-      // Display an error message for invalid category input
+      const{itemName,description,category,item_image_base64}=formData;
+      const response=await axios.post("https://wzdh0w0265.execute-api.us-east-1.amazonaws.com/prod/store-menu-item",{
+        'email':email,
+        'res_name': res_name,
+        'item_name':itemName,
+        'description':description,
+        'categories':category,
+        'menu_image_base64':item_image_base64
+      });
+      if(response.data==true){
+        console.log(response.data);
+        alert("Item added successfully!");
+      }
+      else{
+        console.log(response.data);
+        alert("Item could not be added.Please check if the correct inputs were provided.");
+      }
+    }
+    else {
       console.error('Invalid category input. Please provide comma-separated values.');
+      alert("Invalid category input. Please provide comma-separated values.");
     }
   };
 
@@ -63,7 +80,7 @@ const AddMenuItemForm = () => {
       itemName: '',
       description: '',
       category: '',
-      res_image_base64: null,
+      item_image_base64: null,
     });
   };
 
@@ -103,7 +120,7 @@ const AddMenuItemForm = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Category (separate multiple values with comma like vegan, dairy-free etc.)"
+              label="Categories (separate multiple values with comma like vegan, dairy-free etc.)"
               name="category"
               fullWidth
               onChange={handleInputChange}
