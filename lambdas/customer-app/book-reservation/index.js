@@ -55,6 +55,7 @@ exports.handler = async (event) => {
     reservation_datetime: reservation_datetime.toISO(),
     booking_time: DateTime.now({ zone: "America/Halifax" }).toISO(),
     booking_expiration_time: bookingExpirationTime,
+    status: "P",
   };
 
   try {
