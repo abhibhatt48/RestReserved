@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import Grid from "@mui/material/Grid";
 import MenuItemCard from "./MenuItemCard";
 import Box from "@mui/material/Box";
-import Checkbox from "@mui/material/Checkbox";
 import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
+import { FormControlLabel, Checkbox } from "@mui/material";
+import Loader from "../../common/Loader";
 import Footer from "../../common/Footer";
-import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
 function EditReservation() {
   const [menuItems, setMenuItems] = useState([]);
   const [fetchMenu, setFetchMenu] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [numGuests, setNumGuests] = useState();
-  const [special_requests, setSpecial_requests] = useState();
-  const [restaurant_id, setRestaurant_id] = useState();
+  const [selectedItems, setSelectedItems] = useState({});
+  const [numGuests, setNumGuests] = useState("");
+  const [special_requests, setSpecial_requests] = useState("");
+  const [restaurant_id, setRestaurant_id] = useState("");
   const [date, setDate] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
@@ -26,14 +26,18 @@ function EditReservation() {
   const [timeSlots, setTimeSlots] = useState([]);
   const [timeSlotsData, setTimeSlotsData] = useState({});
   const [itemQuantities, setItemQuantities] = useState({});
+  const [loading, setLoading] = useState(true); // Loading state
   const navigate = useNavigate();
   let reservationData = {};
   const { reservationId } = useParams();
 
-  useEffect(() => {
+  // Function to fetch reservation data
+  const fetchReservationData = useCallback(() => {
+    setLoading(true); // Start loading
+
     axios
       .post(
-        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-single-booking",
+        "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/get-single-reservation",
         {
           method: "POST",
           headers: {
@@ -55,7 +59,7 @@ function EditReservation() {
           setTimeSlot(reservationData.reservation_time);
           setRestaurant_id(reservationData.restaurant_id);
           setSelectedItems(reservationData.menu_items);
-          // Update selected items based on reservation data
+
           const selectedItemsData = {};
           const itemQuantitiesData = {};
           if (
@@ -70,7 +74,7 @@ function EditReservation() {
 
           setSelectedItems(selectedItemsData);
           setItemQuantities(itemQuantitiesData);
-          // Get table details after fetching reservation data
+
           const requestBody = {
             restaurant_id: reservationData.restaurant_id,
             booking_date: reservationData.reservation_date,
@@ -81,7 +85,7 @@ function EditReservation() {
 
           axios
             .post(
-              "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-table-details",
+              "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/available-tables",
               requestBody,
               {
                 headers: {
@@ -113,10 +117,13 @@ function EditReservation() {
               setTableNumber(reservationData.table_number);
               setTimeSlotsData(tableDetails);
               setTimeSlots(data.availability[reservationData.table_number]);
+              setLoading(false); // Stop loading
             })
             .catch((error) => {
               console.error("Failed to fetch table details:", error);
+              setLoading(false); // Stop loading on error
             });
+
           if (
             Array.isArray(reservationData.menu_items) &&
             reservationData.menu_items.length > 0
@@ -124,37 +131,43 @@ function EditReservation() {
             setFetchMenu(true);
             axios
               .post(
-                `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${reservationData.restaurant_id}`
+                "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/get-menu-items",
+                {
+                  restaurantId: reservationData.restaurant_id,
+                }
               )
               .then((response) => {
-                const data = response.data;
+                const data = JSON.parse(response.data.body);
                 const quantities = {};
-                data[0].Items.forEach((item) => {
-                  quantities[item.ItemID] = 0;
-
-                  reservationData.menu_items.forEach((reservationItem) => {
-                    if (item.ItemID === reservationItem.item_id) {
-                      quantities[item.ItemID] = reservationItem.quantity;
-                    }
-                  });
+                const updatedMenuItems = data[0].items.map((item) => {
+                  const quantity =
+                    itemQuantities[item.item_id] || item.quantity;
+                  quantities[item.item_id] = quantity;
+                  return { ...item, quantity };
                 });
 
-                setMenuItems(data[0].Items);
+                setMenuItems(updatedMenuItems);
                 setItemQuantities(quantities);
-                console.log("itemQuantities2", itemQuantities);
               })
               .catch((error) => {
                 console.error("Failed to fetch menu items:", error);
+                setLoading(false); // Stop loading on error
               });
           } else {
             setMenuItems([]);
+            setLoading(false); // Stop loading
           }
         }
       })
       .catch((error) => {
         console.error("Failed to fetch reservation details:", error);
+        setLoading(false); // Stop loading on error
       });
   }, [reservationId]);
+
+  useEffect(() => {
+    fetchReservationData(); // Fetch reservation data on component mount
+  }, [fetchReservationData]);
 
   const handleCheckboxChange = () => {
     setFetchMenu(!fetchMenu);
@@ -168,7 +181,6 @@ function EditReservation() {
 
   const handleItemSelect = (item) => {
     const itemId = item.item_id;
-    console.log("item", item);
     const updatedItems = { ...selectedItems };
 
     if (itemQuantities[itemId] !== undefined) {
@@ -177,7 +189,6 @@ function EditReservation() {
         ...itemQuantities,
         [itemId]: itemQuantities[itemId] + 1,
       });
-      console.log("itemQuantities1", itemQuantities);
     } else {
       updatedItems[itemId] = { ...item, quantity: 1 };
       setItemQuantities({ ...itemQuantities, [itemId]: 1 });
@@ -191,18 +202,18 @@ function EditReservation() {
     const requestBody = {
       customer_id,
       restaurant_id,
+      reservation_id: reservationId,
       reservation_date: date,
       reservation_time: timeSlot,
       number_of_guests: numGuests,
       special_requests: special_requests,
       table_number: tableNumber,
-      menu_items: selectedItems,
+      menu_items: Object.values(selectedItems),
     };
 
-    // Make the API call using Axios
     axios
       .post(
-        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/edit",
+        "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/edit-reservation",
         requestBody,
         {
           headers: {
@@ -217,7 +228,7 @@ function EditReservation() {
       })
       .catch((error) => {
         console.error("Booking error:", error);
-        alert("Update Unuccessful");
+        alert("Update Unsuccessful");
         navigate("/listrestaurants");
       });
   };
@@ -233,7 +244,7 @@ function EditReservation() {
             value={numGuests}
             onChange={(e) => setNumGuests(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           />
         </Box>
         <Box mb={2}>
@@ -243,7 +254,7 @@ function EditReservation() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           />
         </Box>
         <Box mb={2}>
@@ -253,7 +264,7 @@ function EditReservation() {
             value={tableNumber}
             onChange={handleTableNumberChange}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           >
             {tableNumbers.map((option) => (
               <MenuItem key={option} value={option}>
@@ -269,7 +280,7 @@ function EditReservation() {
             value={timeSlot}
             onChange={(e) => setTimeSlot(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           >
             {timeSlots.map((option) => (
               <MenuItem key={option} value={option}>
@@ -285,10 +296,10 @@ function EditReservation() {
             value={special_requests}
             onChange={(e) => setSpecial_requests(e.target.value)}
             variant="outlined"
-            style={{ width: "100%" }} // Fixed width
+            style={{ width: "100%" }}
           />
         </Box>
-        {/* <FormControlLabel
+        <FormControlLabel
           control={
             <Checkbox
               checked={fetchMenu}
@@ -297,20 +308,24 @@ function EditReservation() {
             />
           }
           label="Add Items From Menu to this Order (Optional)"
-        /> */}
-        {fetchMenu && (
-          <Grid container spacing={2}>
-            {menuItems.map((item) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={item.ItemID}>
-                <MenuItemCard
-                  item={item}
-                  onItemSelect={handleItemSelect}
-                  quantity={itemQuantities[item.ItemID] || 0} // Show the previously booked quantity
-                />
-              </Grid>
-            ))}
-          </Grid>
-        )}
+        />
+        {fetchMenu ? (
+          loading ? (
+            <Loader />
+          ) : (
+            <Grid container spacing={2}>
+              {menuItems.map((item) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
+                  <MenuItemCard
+                    item={item}
+                    onItemSelect={handleItemSelect}
+                    quantity={itemQuantities[item.item_id] || 0}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          )
+        ) : null}
         <Box mt={2}>
           <Button variant="contained" color="primary" onClick={handleEditClick}>
             Update

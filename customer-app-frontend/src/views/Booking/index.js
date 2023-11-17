@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Grid from "@mui/material/Grid";
 import MenuItemCard from "./MenuItemCard";
 import Box from "@mui/material/Box";
@@ -9,7 +10,6 @@ import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Footer from "../../common/Footer";
-import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import Loader from "../../common/Loader";
 
@@ -46,7 +46,7 @@ function Booking() {
 
         // Call the API to get table details
         const response = await axios.post(
-          "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/get-table-details",
+          "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/available-tables",
           requestBody,
           {
             headers: {
@@ -79,12 +79,17 @@ function Booking() {
       setLoading(true);
 
       try {
-        const response = await fetch(
-          `https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=${restaurant.restaurant_id}`
-        );
+        const apiUrl =
+          "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/get-menu-items";
 
-        const data = await response.json();
-        setMenuItems(data[0].Items);
+        // Define the request data to be sent in the request body
+        const requestData = {
+          restaurantId: restaurant.restaurant_id, // Replace with the appropriate value
+        };
+
+        const response = await axios.post(apiUrl, requestData); // Use the post method and send the requestData in the request body
+        const data = JSON.parse(response.data.body);
+        setMenuItems(data[0].items);
       } catch (error) {
         console.error("Failed to fetch menu items:", error);
       }
@@ -137,7 +142,7 @@ function Booking() {
 
     axios
       .post(
-        "https://auxehb42pg.execute-api.us-east-1.amazonaws.com/prod/book",
+        "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/book-reservation",
         requestBody,
         {
           headers: {
@@ -238,7 +243,7 @@ function Booking() {
         ) : (
           <Grid container spacing={2}>
             {menuItems.map((item) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={item.ItemID}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
                 <MenuItemCard item={item} onItemSelect={handleItemSelect} />
               </Grid>
             ))}
