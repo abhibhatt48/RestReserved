@@ -63,7 +63,12 @@ async function getAllReservations() {
 
 // Function to filter reservations for a restaurant
 function filterRestaurantReservations(reservations, restaurant_id) {
+  const oneMonthAgo = DateTime.now().minus({ months: 1 });
+
   return reservations.filter((reservation) => {
-    return reservation.restaurant_id === restaurant_id;
+    return (
+      reservation.restaurant_id === restaurant_id &&
+      DateTime.fromISO(reservation.reservation_datetime) >= oneMonthAgo
+    );
   });
 }

@@ -13,8 +13,8 @@ function MenuItemCard({ item, onItemSelect }) {
   const handleIncrement = () => {
     setQuantity(quantity + 1);
     onItemSelect({
-      item_id: item.ItemID,
-      item_name: item.ItemName,
+      item_id: item.item_id,
+      item_name: item.item_name,
       quantity: quantity + 1,
     });
   };
@@ -23,8 +23,8 @@ function MenuItemCard({ item, onItemSelect }) {
     if (quantity > 0) {
       setQuantity(quantity - 1);
       onItemSelect({
-        item_id: item.ItemID,
-        item_name: item.ItemName,
+        item_id: item.item_id,
+        item_name: item.item_name,
         quantity: quantity - 1,
       });
     }
@@ -34,14 +34,14 @@ function MenuItemCard({ item, onItemSelect }) {
     <Card>
       <CardMedia
         component="img"
-        alt={item.ItemName}
+        alt={item.item_name}
         height="140"
-        image={item.ImageUrl}
+        image={item.item_image_url}
       />
       <CardContent>
-        <Typography variant="h6">{item.ItemName}</Typography>
-        <Typography variant="body2">{item.Description}</Typography>
-        <Typography variant="h6">${item.Price}</Typography>
+        <Typography variant="h6">{item.item_name}</Typography>
+        <Typography variant="body2">{item.description}</Typography>
+        <Typography variant="h6">${item.price}</Typography>
         <div>
           <IconButton onClick={handleDecrement}>
             <RemoveIcon />
