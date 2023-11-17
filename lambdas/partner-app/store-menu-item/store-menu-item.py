@@ -18,6 +18,7 @@ def lambda_handler(event, context):
         res_id = event['email']
         res_name = event['res_name']
         item_name=event['item_name']
+        item_price=event['item_price']
         item_description=event['description']
         item_categories=event['categories']
         item_image_base64 = event['menu_image_base64']
@@ -56,6 +57,7 @@ def lambda_handler(event, context):
         menu_item = {
                     'item_id': item_id,
                     'item_name': item_name,
+                    'price':item_price,
                     'category':item_category_list,
                     'description':item_description,
                     'item_image_url': item_image_url,
