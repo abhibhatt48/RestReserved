@@ -1,5 +1,5 @@
 // RestaurantList.js
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import axios from 'axios';
 
 const formStyle = {
@@ -80,7 +80,7 @@ const EditRestaurantForm = ({ restaurant, onSave }) => {
 
 const RestaurantList = () => {
     const [restaurant, setRestaurant] = useState(null);
-    const [restaurantId, setRestaurantId] = useState('');
+    //const [restaurantId, setRestaurantId] = useState('');
     const [editMode, setEditMode] = useState(false);
 
     useEffect(() => {
@@ -122,15 +122,6 @@ const RestaurantList = () => {
 
     return (
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <input
-                    type="text"
-                    placeholder="Enter Restaurant ID"
-                    value={restaurantId}
-                    onChange={handleInputChange}
-                    style={{ width: '80%', padding: '10px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '4px' }}
-                />
-            </div>
             
             {restaurant && (
                 <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>

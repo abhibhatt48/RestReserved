@@ -34,6 +34,7 @@ function Holistic() {
   return (
     <div className="App">
       <ReservationList reservations={reservations} />
+      <RestaurantList restaurantId={restaurantId} />
     </div>
   );
 }
