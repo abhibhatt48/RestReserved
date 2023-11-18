@@ -18,7 +18,7 @@ const MenuDisplay = () => {
   const [showAddMenuItemForm, setShowAddMenuItemForm] = useState(false);
   const [newItem, setNewItem] = useState({
     itemName: '',
-    category: '',
+    category: [],
     description: '',
     itemDiscount: false,
     itemDiscountRate: '',
@@ -80,49 +80,102 @@ const MenuDisplay = () => {
 
       // Handle success (e.g., show a success message)
       console.log('Menu edited successfully');
+      window.location.reload();
     } catch (error) {
       // Handle errors (e.g., show an error message)
       console.error('Error editing menu:', error.message);
+      window.location.reload();
     }
   };
 
   const handleEditSave = () => {
-    const updatedMenuData = { ...menuData };
-    updatedMenuData.items[editForm] = {
-      category: editedItem.category.map((cat) => ({ S: cat })),
-      description: { S: editedItem.description },
-      item_discount: { BOOL: editedItem.itemDiscount },
-      item_discount_rate: { S: editedItem.itemDiscountRate },
-      item_id: { S: editedItem.itemId },
-      item_image_url: { S: editedItem.itemImageUrl },
-      item_name: { S: editedItem.itemName },
+    const updatedMenuItem = {
+      category: editedItem.category.map((cat) => cat),
+      description: editedItem.description,
+      item_discount: editedItem.itemDiscount,
+      item_discount_rate: editedItem.itemDiscountRate,
+      item_id: editedItem.itemId,
+      item_image_url: editedItem.itemImageUrl,
+      item_name: editedItem.itemName,
     };
-
+  
+    const updatedMenuData = {
+      menu_id: menuData.menu_id,
+      menu_discount: mainToggle, // Use the current state of mainToggle
+      menu_discount_rate: menuData.menu_discount_rate,
+      res_id: menuData.res_id,
+      items: [...menuData.items],
+    };
+  
+    updatedMenuData.items[editForm] = updatedMenuItem;
+  
     // Call the editMenu function to update the backend
     editMenu(updatedMenuData);
-    // setMenuData(updatedMenuData);
-    // setEditForm(null);
+    
   };
 //------------------------------------
   const handleAddMenuItem = () => {
-    // Logic to handle adding a new menu item
-    // You can set state or navigate to a new page for adding a menu item
     console.log('Add menu item clicked');
     setShowAddMenuItemForm(true);
   };
 
   const handleAddMenuFormClose = () => {
     setShowAddMenuItemForm(false);
-    // Additional logic to reset form fields if needed
   };
 
   const handleAddMenuSave = () => {
-    // Logic to handle saving a new menu item
-    // You can use the entered data and update the state or send it to the backend
-    console.log('Save new menu item logic here', newItem);
-    // Additional logic to reset form fields if needed
-    setShowAddMenuItemForm(false);
+    const newItemData = {
+      category: newItem.category.map((cat) => cat),
+      description: newItem.description,
+      item_discount: newItem.itemDiscount,
+      item_discount_rate: newItem.itemDiscountRate,
+      item_id: newItem.itemId,
+      item_image_url: newItem.itemImageUrl,
+      item_name: newItem.itemName,
+    };
+  
+    const updatedMenuData = {
+      menu_id: menuData.menu_id,
+      menu_discount: mainToggle, 
+      menu_discount_rate: menuData.menu_discount_rate,
+      res_id: menuData.res_id,
+      items: [...menuData.items, newItemData],
+    };
+  
+    
+    editMenu(updatedMenuData);
+    
   };
+
+  const handleDeleteClick = async (index) => {
+    try {
+      const itemToDelete = menuData.items[index];
+      const deleteApiUrl = 'https://8nqal5q4sf.execute-api.us-east-1.amazonaws.com/delete-menu';
+  
+      const response = await fetch(deleteApiUrl, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          menu_id: menuData.menu_id,
+          item_id: itemToDelete.item_id,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete menu item');
+      }
+  
+      console.log('Menu item deleted successfully');
+      window.location.reload(); 
+    } catch (error) {
+      console.error('Error deleting menu item:', error.message);
+      window.location.reload(); 
+    }
+  };
+  
+
   if (!menuData) {
     return <div>Loading...</div>;
   }
@@ -140,7 +193,7 @@ const MenuDisplay = () => {
           onChange={handleMainToggle}
         />
         <label className="form-check-label" htmlFor="mainToggle">
-          Main Toggle for Menu Discount
+         Menu Discount
         </label>
       </div>
 
@@ -163,6 +216,13 @@ const MenuDisplay = () => {
                       onClick={() => handleEditClick(index)}
                     >
                       Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger ms-2"
+                      onClick={() => handleDeleteClick(index)}
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -315,7 +375,7 @@ const MenuDisplay = () => {
                 className="form-control"
                 id="addCategory"
                 value={newItem.category}
-                onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                onChange={(e) => setNewItem({ ...newItem, category: e.target.value.split(', ') })}
               />
 
               <label htmlFor="addDescription" className="form-label">
