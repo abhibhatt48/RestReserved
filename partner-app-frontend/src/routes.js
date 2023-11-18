@@ -5,7 +5,7 @@ import SignInWithEmailForm from "./views/Authentication/restaurantSignin";
 import SignInWithGmailPage from './views/Authentication/restaurantGmailSignIn';
 import RestaurantDetailsForm from "./views/Restaurant_Details/addRestaurantDetails";
 import AddMenuItemForm from "./views/Restaurant_Details/addRestaurantMenu";
-
+import MenuDisplay from "./views/menu";
 const Router = () => {
   return (
     <Routes>
@@ -15,6 +15,7 @@ const Router = () => {
       <Route path="/signin" element={<SignInWithEmailForm />} />
       <Route path="/googleSignIn" element={<SignInWithGmailPage/>}/>
       <Route path="/holistic" element={<Holistic />} />
+      <Route path="/menu" element={<MenuDisplay/>}/>
     </Routes>
   );
 };
