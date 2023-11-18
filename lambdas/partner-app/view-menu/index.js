@@ -5,11 +5,11 @@ const dynamoDB = new AWS.DynamoDB();
 exports.handler = async (event) => {
     try {
         const menuId = event.queryStringParameters.menu_id;
-        console.log("menu_id",menuId);
+        console.log("menu_id", menuId);
         const params = {
-            TableName: 'menu-table',
+            TableName: 'menu',
             Key: {
-                MenuItemID: {
+                menu_id: {
                     S: menuId
                 }
             }
@@ -25,19 +25,19 @@ exports.handler = async (event) => {
         }
 
         const menuData = {
-            menu_id: result.Item.MenuItemID.S,
-            items: result.Item.Items.L.map(item => ({
-                category: item.M.Category.L.map(category => category.S),
-                description: item.M.Description.S,
-                item_discount: item.M.ItemDiscount.BOOL,
-                item_discount_rate: item.M.ItemDiscountRate.S,
-                item_id: item.M.ItemID.S,
-                item_image_url: item.M.ItemImageURL.S,
-                item_name: item.M.ItemName.S
+            menu_id: result.Item.menu_id.S,
+            items: result.Item.items.L.map(item => ({
+                category: item.M.category.L.map(category => category.S),
+                description: item.M.description.S,
+                item_discount: item.M.item_discount.BOOL,
+                item_discount_rate: item.M.item_discount_rate.S,
+                item_id: item.M.item_id.S,
+                item_image_url: item.M.item_image_url.S,
+                item_name: item.M.item_name.S
             })),
-            menu_discount: result.Item.MenuDiscount.BOOL,
-            menu_discount_rate: result.Item.MenuDiscountRate.S,
-            res_id: result.Item.RestaurantID.S
+            menu_discount: result.Item.menu_discount.BOOL,
+            menu_discount_rate: result.Item.menu_discount_rate.S,
+            res_id: result.Item.res_id.S
         };
 
         return {

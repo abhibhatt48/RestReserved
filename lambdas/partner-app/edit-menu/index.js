@@ -7,36 +7,25 @@ exports.handler = async (event) => {
 
         const { menu_id, items, menu_discount, menu_discount_rate, res_id } = requestBody;
 
-        
-        const mappedItems = items.map(item => ({
-            Category: item.category,
-            Description: item.description,
-            ItemDiscount: item.item_discount,
-            ItemDiscountRate: item.item_discount_rate,
-            ItemID: item.item_id,
-            ItemImageURL: item.item_image_url,
-            ItemName: item.item_name,
-        }));
-
         const params = {
-            TableName: 'menu-table',
+            TableName: 'menu',
             Key: {
-                MenuItemID: menu_id,
+                menu_id: menu_id,
             },
             UpdateExpression: 'SET #items = :items, #menu_discount = :menu_discount, #menu_discount_rate = :menu_discount_rate, #res_id = :res_id',
             ExpressionAttributeNames: {
-                '#items': 'Items',
-                '#menu_discount': 'MenuDiscount',
-                '#menu_discount_rate': 'MenuDiscountRate',
-                '#res_id': 'RestaurantID',
+            '#items': 'items',
+            '#menu_discount': 'menu_discount',
+            '#menu_discount_rate': 'menu_discount_rate',
+            '#res_id': 'res_id',
             },
             ExpressionAttributeValues: {
-                ':items': mappedItems,
-                ':menu_discount': menu_discount,
-                ':menu_discount_rate': menu_discount_rate,
-                ':res_id': res_id,
+            ':items': items,
+            ':menu_discount': menu_discount,
+            ':menu_discount_rate': menu_discount_rate,
+            ':res_id': res_id,
             },
-            ReturnValues: 'ALL_NEW', 
+            ReturnValues: 'ALL_NEW',
         };
 
         await dynamoDB.update(params).promise();
