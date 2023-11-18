@@ -22,6 +22,9 @@ function Header() {
     }
     navigate("/signin");
   };
+  const navigateToView = () => {
+    navigate("/view");
+  };
   const navigateToHome = () => {
     navigate("/holistic");
   };
@@ -34,6 +37,9 @@ function Header() {
         </Button>
 
         <div>
+          <Button color="inherit" onClick={navigateToView}>
+            View Bookings
+          </Button>
           <Button color="inherit" onClick={handleLogout}>
             SignOut
             <ExitToAppIcon /> {/* Logout icon */}
