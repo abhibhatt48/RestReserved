@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import ReservationList from "./ReservationList";
 
 function Holistic() {
   const [reservations, setReservations] = useState([]);
@@ -34,7 +33,6 @@ function Holistic() {
   return (
     <div className="App">
       <ReservationList reservations={reservations} />
-      <RestaurantList restaurantId={restaurantId} />
     </div>
   );
 }
