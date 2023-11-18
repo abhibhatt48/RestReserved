@@ -1,47 +1,42 @@
 const AWS = require('aws-sdk');
-AWS.config.update({ region: 'your-region' }); // Replace 'your-region' with your DynamoDB region
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = 'table_reservation_app_restaurants';
 
 exports.handler = async (event, context) => {
     const { restaurant_id } = event;
-    const updateParams = {
-        TableName: tableName,
-        Key: { 'restaurant_id': restaurant_id },
-        UpdateExpression: 'set ',
-        ExpressionAttributeValues: {},
-        ReturnValues: 'UPDATED_NEW'
-    };
-
-    let hasUpdates = false;
-    for (const key of ['name', 'closing_time', 'opening_time', 'address', 'total_tables', 'image_base64']) {
-        if (event[key]) {
-            hasUpdates = true;
-            updateParams.UpdateExpression += `${key} = :${key}, `;
-            updateParams.ExpressionAttributeValues[`:${key}`] = event[key];
-        }
-    }
-
-    if (!hasUpdates) {
+    if (!restaurant_id) {
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'No update fields provided' })
+            body: JSON.stringify({ error: 'Restaurant ID is required' })
         };
     }
 
-    updateParams.UpdateExpression = updateParams.UpdateExpression.slice(0, -2);
+    const item = {
+        restaurant_id: restaurant_id,
+        res_name: event.name,
+        res_closing_time: event.res_closing_time,
+        res_opening_time: event.res_opening_time,
+        res_location: event.res_location,
+        res_total_tables: event.res_total_tables,
+        res_image_url: event.res_image_url
+    };
+
+    const putParams = {
+        TableName: tableName,
+        Item: item
+    };
 
     try {
-        await dynamoDb.update(updateParams).promise();
+        await dynamoDb.put(putParams).promise();
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: 'Item updated successfully' })
+            body: JSON.stringify({ message: 'Restaurant updated successfully' })
         };
     } catch (error) {
-        console.error('Error updating item:', error);
+        console.error('Error updating restaurant:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Could not update item' })
+            body: JSON.stringify({ error: 'Could not update restaurant' })
         };
     }
 };
