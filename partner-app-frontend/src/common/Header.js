@@ -28,6 +28,9 @@ function Header() {
   const navigateToHome = () => {
     navigate("/holistic");
   };
+  const navigateToResDetails = () => {
+    navigate("/restaurant-details");
+  };
 
   return (
     <AppBar position="static" color="primary">
@@ -37,6 +40,9 @@ function Header() {
         </Button>
 
         <div>
+          <Button color="inherit" onClick={navigateToResDetails}>
+            Restaurant Details
+          </Button>
           <Button color="inherit" onClick={navigateToView}>
             View Bookings
           </Button>
