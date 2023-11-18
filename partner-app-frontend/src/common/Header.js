@@ -13,7 +13,7 @@ function Header() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      localStorage.setItem("customer_id", "");
+      localStorage.setItem("restaurant_id", "");
       localStorage.removeItem(
         "firebase:authUser:[AIzaSyBMXP3EqiPQEP6f91mMekTuiBTp-Uw6baE]:[csci5410-serverless-auth]"
       );
