@@ -58,7 +58,8 @@ const GmailSignInForm = () => {
         localStorage.setItem("customer_id", result.user.email);
         // User signed in with Google
         console.log('User signed in with Google',result.user);
-        navigate("/listrestaurants");
+        localStorage.setItem("restaurant_id", email);
+        navigate("/holistic");
      }
     }
     catch (error) {

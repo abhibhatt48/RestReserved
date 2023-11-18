@@ -57,7 +57,8 @@ const SignInWithEmailForm = () => {
           const user = userCredential.user;
           localStorage.setItem("customer_id", email);
           console.log('User Signed in successfully:', user);
-          navigate("/listrestaurants");
+          localStorage.setItem("restaurant_id", email);
+          navigate("/holistic");
         }
         else
         {
