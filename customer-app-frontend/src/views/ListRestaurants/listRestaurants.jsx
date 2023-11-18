@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card,CardMedia, CardContent, Typography, Button,Grid } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-
+import { Card,CardMedia, CardContent, Typography, Button,Grid, Container } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import Footer from '../../common/Footer';
 const RestaurantList = () => {
   const [restaurants, setRestaurants] = useState([]);
-  const navigate = useNavigate(); // Get the navigation function
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -27,6 +27,10 @@ const RestaurantList = () => {
   };
 
   return (
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
+      <Container style={{ flex: 1 }}>
     <Grid container spacing={2} justifyContent="center">
       {restaurants.map((restaurant, index) => (
         <Grid item key={index}>
@@ -53,6 +57,9 @@ const RestaurantList = () => {
         </Grid>
       ))}
     </Grid>
+    </Container>
+    <Footer />
+    </div>
   );
 };
 
