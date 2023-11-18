@@ -19,6 +19,7 @@ function EditReservation() {
   const [numGuests, setNumGuests] = useState("");
   const [special_requests, setSpecial_requests] = useState("");
   const [restaurant_id, setRestaurant_id] = useState("");
+  const [customer_id, setCustomer_id] = useState("");
   const [date, setDate] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
@@ -59,6 +60,7 @@ function EditReservation() {
           setTimeSlot(reservationData.reservation_time);
           setRestaurant_id(reservationData.restaurant_id);
           setSelectedItems(reservationData.menu_items);
+          setCustomer_id(reservationData.customer_id);
 
           const selectedItemsData = {};
           const itemQuantitiesData = {};
@@ -197,10 +199,9 @@ function EditReservation() {
   };
 
   const handleEditClick = () => {
-    const customer_id = localStorage.getItem("customer_id");
     const restaurant_id = localStorage.getItem("restaurant_id");
     const requestBody = {
-      customer_id,
+      customer_id: customer_id,
       restaurant_id,
       reservation_id: reservationId,
       reservation_date: date,
@@ -224,12 +225,12 @@ function EditReservation() {
       .then((response) => {
         console.log("Booking successful:", response.data);
         alert("Update Successful");
-        navigate("/listrestaurants");
+        navigate("/holistic");
       })
       .catch((error) => {
         console.error("Booking error:", error);
         alert("Update Unsuccessful");
-        navigate("/listrestaurants");
+        navigate("/holistic");
       });
   };
 

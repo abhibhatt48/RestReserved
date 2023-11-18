@@ -12,6 +12,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { useTheme } from "@mui/material/styles";
+import { axios } from "axios";
 
 const MenuSelector = () => {
   const theme = useTheme();
@@ -23,12 +24,17 @@ const MenuSelector = () => {
 
   useEffect(() => {
     const apiUrl =
-      "https://xt9806b6e1.execute-api.us-east-1.amazonaws.com/default/getMenuItems?restaurantId=12";
+      "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/get-menu-items";
 
-    fetch(apiUrl)
-      .then((response) => response.json())
-      .then((data) => {
-        setRestaurants(data);
+    // Define the request data to be sent in the request body
+    const requestData = {
+      restaurantId: 12, // Replace with the appropriate value
+    };
+
+    axios
+      .post(apiUrl, requestData) // Use the post method and send the requestData in the request body
+      .then((response) => {
+        setRestaurants(JSON.parse(response.data.body));
         setIsLoading(false);
       })
       .catch((error) => {
@@ -60,7 +66,7 @@ const MenuSelector = () => {
               sm={6}
               md={4}
               lg={3}
-              key={restaurant.MenuItemID}
+              key={restaurant.menu_id}
               name="menuSelectorGrid"
             >
               <div
@@ -71,28 +77,28 @@ const MenuSelector = () => {
                 }}
                 name="cardDiv"
               >
-                {restaurant.Items.map((menuItem) => (
+                {restaurant.items.map((menuItem) => (
                   <Card
                     style={{ width: cardWidth, marginBottom: theme.spacing(2) }}
-                    key={menuItem.ItemID}
+                    key={menuItem.item_id}
                   >
                     <CardMedia
                       component="img"
-                      alt={menuItem.ItemName}
+                      alt={menuItem.item_name}
                       height="140"
-                      image={menuItem.ImageUrl}
+                      image={menuItem.item_image_url}
                     />
                     <div style={{ flex: 1 }}>
                       <CardContent>
                         <Typography variant="h6">
-                          {menuItem.ItemName}
+                          {menuItem.item_name}
                         </Typography>
-                        <Typography>{menuItem.Description}</Typography>
+                        <Typography>{menuItem.description}</Typography>
                         <Typography>
-                          Price: ${parseFloat(menuItem.Price).toFixed(2)}
+                          Price: ${parseFloat(menuItem.price).toFixed(2)}
                         </Typography>
                         <Typography>
-                          Category: {menuItem.Category.join(", ")}
+                          Category: {menuItem.category.join(", ")}
                         </Typography>
                         <Box display="flex" alignItems="center">
                           <IconButton onClick={() => handleRemove(menuItem)}>

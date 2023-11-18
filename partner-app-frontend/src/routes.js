@@ -1,11 +1,12 @@
 import { Routes, Route } from "react-router-dom";
 import Holistic from "./views/Holistic/index";
+import ViewBooking from "./views/ViewBooking/ViewReservation";
+import EditReservation from "./views/EditBooking";
 import SignupForm from "./views/Authentication/restaurantSignUp";
 import SignInWithEmailForm from "./views/Authentication/restaurantSignin";
-import SignInWithGmailPage from './views/Authentication/restaurantGmailSignIn';
+import SignInWithGmailPage from "./views/Authentication/restaurantGmailSignIn";
 import RestaurantDetailsForm from "./views/Restaurant_Details/addRestaurantDetails";
 import AddMenuItemForm from "./views/Restaurant_Details/addRestaurantMenu";
-import List_Restaurant from "./views/List_Restaurant/RestaurantList";
 
 const Router = () => {
   return (
@@ -14,9 +15,10 @@ const Router = () => {
       <Route path="/addRestaurantDetails" element={<RestaurantDetailsForm />} />
       <Route path="/addRestaurantMenu" element={<AddMenuItemForm />} />
       <Route path="/signin" element={<SignInWithEmailForm />} />
-      <Route path="/googleSignIn" element={<SignInWithGmailPage/>}/>
-      <Route path="/ListRestaurant" element={<List_Restaurant />} />
+      <Route path="/googleSignIn" element={<SignInWithGmailPage />} />
       <Route path="/holistic" element={<Holistic />} />
+      <Route path="/view" element={<ViewBooking />} />
+      <Route path="/edit/:reservationId" element={<EditReservation />} />
     </Routes>
   );
 };

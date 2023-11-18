@@ -9,7 +9,8 @@ const AddMenuItemForm = () => {
     itemName: '',
     description: '',
     category: '',
-    item_image_base64: null
+    item_image_base64: null,
+    itemPrice: ''
   });
 
   let locate=useLocation();
@@ -50,11 +51,12 @@ const AddMenuItemForm = () => {
     const categoryArray = formData.category.split(',').map((cat) => cat.trim());
     if (categoryArray.length > 1) {
       console.log('Valid categories:', categoryArray);
-      const{itemName,description,category,item_image_base64}=formData;
+      const{itemName,itemPrice,description,category,item_image_base64}=formData;
       const response=await axios.post("https://wzdh0w0265.execute-api.us-east-1.amazonaws.com/prod/store-menu-item",{
         'email':email,
         'res_name': res_name,
         'item_name':itemName,
+        'item_price':itemPrice,
         'description':description,
         'categories':category,
         'menu_image_base64':item_image_base64
@@ -102,6 +104,17 @@ const AddMenuItemForm = () => {
               name="itemName"
               fullWidth
               value={formData.itemName}
+              onChange={handleInputChange}
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Item Price($CAD)"
+              name="itemPrice"
+              fullWidth
+              type="number" 
+              value={formData.itemPrice}
               onChange={handleInputChange}
               required
             />

@@ -8,7 +8,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
 } from "@mui/material";
 import {
   CheckCircleOutline, // Approved icon
@@ -20,65 +19,71 @@ import Footer from "../../common/Footer";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../common/Loader";
 import { format } from "date-fns";
+import axios from "axios";
+const { DateTime } = require("luxon");
 
 function ViewBooking() {
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const restaurantId = localStorage.getItem("restaurant_id");
 
   useEffect(() => {
-    // Retrieve the user ID from localStorage (you need to implement this)
-    const customer_id = localStorage.getItem("customer_id");
-
-    // Fetch the user's bookings from your API
-    const fetchUserBookings = async (customer_id) => {
+    const fetchUserBookings = () => {
       try {
-        const response = await fetch(
-          "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/view-reservations",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              customer_id: customer_id,
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.body) {
-            const bodyData = JSON.parse(data.body);
-            if (bodyData.reservations) {
-              console.log("bookings", bodyData.reservations);
-              setBookings(bodyData.reservations);
-            } else {
-              console.error("No reservations found in the response.");
+        axios
+          .post(
+            "https://9uig9dfx55.execute-api.us-east-1.amazonaws.com/prod/get-reservations",
+            {
+              restaurant_id: restaurantId,
             }
-          } else {
-            console.error("Invalid data format in API response.");
-          }
-          setLoading(false);
-        } else {
-          console.error("Failed to fetch user bookings");
-        }
+          )
+          .then((response) => {
+            response = JSON.parse(response.data.body);
+            console.log("response", response);
+            const res = filterUpcomingReservations(response.reservations);
+            setBookings(res);
+            console.log("res", res);
+            setLoading(false);
+          })
+          .catch((error) => {
+            console.error("Error fetching reservations:", error);
+            setLoading(false);
+          });
       } catch (error) {
         console.error("Error fetching user bookings:", error);
+        setLoading(false);
       }
     };
 
-    if (customer_id) {
-      setUser({ id: customer_id });
-      fetchUserBookings(customer_id);
-    }
-  }, []);
+    fetchUserBookings();
+  }, [restaurantId]);
 
   const isBookingExpired = (booking) => {
     const expirationTime = new Date(booking.booking_expiration_time).getTime();
     const currentTime = new Date().getTime();
     return currentTime > expirationTime;
+  };
+
+  function filterUpcomingReservations(reservations) {
+    const now = DateTime.now().setZone("America/Halifax");
+    const oneHourBefore = now.minus({ hours: 1 });
+    console.log("here", reservations);
+    return reservations.filter((reservation) => {
+      const bookingExpirationTime = DateTime.fromISO(
+        reservation.booking_expiration_time,
+        { zone: "America/Halifax" }
+      );
+      console.log("reservation: ", reservation);
+      console.log("bookingExpirationTime: ", bookingExpirationTime);
+      console.log("oneHourBefore: ", oneHourBefore);
+      return bookingExpirationTime >= oneHourBefore;
+    });
+  }
+
+  const handleEditBooking = (reservationId) => {
+    navigate(`/edit/${reservationId}`);
   };
 
   const getStatusIconAndText = (status) => {
@@ -125,10 +130,6 @@ function ViewBooking() {
     return { icon, text };
   };
 
-  const handleEditBooking = (reservationId) => {
-    navigate(`/edit/${reservationId}`);
-  };
-
   const handleDeleteBooking = async (reservationId) => {
     try {
       setLoading(true);
@@ -159,6 +160,64 @@ function ViewBooking() {
     } catch (error) {
       setLoading(false);
       console.error("Error deleting the booking:", error);
+    }
+  };
+
+  const handleAcceptBooking = async (reservationId) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/edit-reservation",
+        {
+          reservation_id: reservationId,
+          status: "Y",
+        }
+      );
+
+      if (response.status === 200) {
+        const updatedBookings = bookings.map((booking) =>
+          booking.reservation_id === reservationId
+            ? { ...booking, status: "Y" }
+            : booking
+        );
+        setBookings(updatedBookings);
+        setLoading(false);
+      } else {
+        setLoading(false);
+        console.error("Failed to accept the booking");
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error accepting the booking:", error);
+    }
+  };
+
+  const handleRejectBooking = async (reservationId) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/edit-reservation",
+        {
+          reservation_id: reservationId,
+          status: "N",
+        }
+      );
+
+      if (response.status === 200) {
+        const updatedBookings = bookings.map((booking) =>
+          booking.reservation_id === reservationId
+            ? { ...booking, status: "N" }
+            : booking
+        );
+        setBookings(updatedBookings);
+        setLoading(false);
+      } else {
+        setLoading(false);
+        console.error("Failed to reject the booking");
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error rejecting the booking:", error);
     }
   };
 
@@ -214,6 +273,30 @@ function ViewBooking() {
                         </Typography>
                       ) : (
                         <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                          {booking.status === "P" ? (
+                            <>
+                              <Button
+                                onClick={() =>
+                                  handleAcceptBooking(booking.reservation_id)
+                                }
+                                variant="outlined"
+                                color="primary"
+                                sx={{ flex: 1 }}
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                onClick={() =>
+                                  handleRejectBooking(booking.reservation_id)
+                                }
+                                variant="outlined"
+                                color="secondary"
+                                sx={{ flex: 1 }}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          ) : null}
                           <Button
                             onClick={() =>
                               handleEditBooking(booking.reservation_id)
