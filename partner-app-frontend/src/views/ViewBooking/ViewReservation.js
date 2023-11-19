@@ -11,9 +11,9 @@ import {
   Container,
 } from "@mui/material";
 import {
-  CheckCircleOutline, // Approved icon
-  HighlightOff, // Rejected icon
-  Schedule, // Pending icon
+  CheckCircleOutline,
+  HighlightOff,
+  Schedule,
 } from "@mui/icons-material";
 import "./ViewBooking.css";
 import Footer from "../../common/Footer";
