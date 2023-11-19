@@ -8,11 +8,12 @@ import {
   List,
   ListItem,
   ListItemText,
+  Container,
 } from "@mui/material";
 import {
-  CheckCircleOutline, // Approved icon
-  HighlightOff, // Rejected icon
-  Schedule, // Pending icon
+  CheckCircleOutline,
+  HighlightOff,
+  Schedule,
 } from "@mui/icons-material";
 import "./ViewBooking.css";
 import Footer from "../../common/Footer";
@@ -222,121 +223,125 @@ function ViewBooking() {
   };
 
   return (
-    <>
-      <Box className="booking-details-container">
-        <Typography variant="h4">User's Bookings</Typography>
-        {loading ? (
-          <Loader />
-        ) : (
-          <Box>
-            {bookings.length === 0 ? (
-              <Typography>No bookings found</Typography>
-            ) : (
-              <Box>
-                {bookings.map((booking, index) => (
-                  <Card key={index} className="booking-details">
-                    <CardContent style={{ position: "relative" }}>
-                      <Typography variant="h6">
-                        Reservation Date:{" "}
-                        {format(
-                          new Date(booking.reservation_date + "T00:00:00"),
-                          "MMMM d, yyyy"
-                        )}
-                      </Typography>
-                      <Typography variant="body1">
-                        Booking Time: {booking.reservation_time}
-                      </Typography>
-                      <Typography variant="body1">
-                        Number of Guests: {booking.number_of_guests}
-                      </Typography>
-                      <Typography variant="body1">
-                        Special Requests: {booking.special_requests}
-                      </Typography>
-                      <Typography variant="h6">Menu Items</Typography>
-                      <List>
-                        {booking.menu_items ? (
-                          booking.menu_items.map((menuItem, itemIndex) => (
-                            <ListItem key={itemIndex}>
-                              <ListItemText
-                                primary={`Item Name: ${menuItem.item_name}`}
-                                secondary={`Quantity: ${menuItem.quantity}`}
-                              />
-                            </ListItem>
-                          ))
-                        ) : (
-                          <Typography>No menu items available</Typography>
-                        )}
-                      </List>
-                      {isBookingExpired(booking) ? (
-                        <Typography variant="body2" color="textSecondary">
-                          Cannot Edit This Order
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
+      <Container style={{ flex: 1 }}>
+        <Box className="booking-details-container">
+          <Typography variant="h4">Upcoming Bookings</Typography>
+          {loading ? (
+            <Loader />
+          ) : (
+            <Box>
+              {bookings.length === 0 ? (
+                <Typography>No bookings found</Typography>
+              ) : (
+                <Box>
+                  {bookings.map((booking, index) => (
+                    <Card key={index} className="booking-details">
+                      <CardContent style={{ position: "relative" }}>
+                        <Typography variant="h6">
+                          Reservation Date:{" "}
+                          {format(
+                            new Date(booking.reservation_date + "T00:00:00"),
+                            "MMMM d, yyyy"
+                          )}
                         </Typography>
-                      ) : (
-                        <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-                          {booking.status === "P" ? (
-                            <>
-                              <Button
-                                onClick={() =>
-                                  handleAcceptBooking(booking.reservation_id)
-                                }
-                                variant="outlined"
-                                color="primary"
-                                sx={{ flex: 1 }}
-                              >
-                                Accept
-                              </Button>
-                              <Button
-                                onClick={() =>
-                                  handleRejectBooking(booking.reservation_id)
-                                }
-                                variant="outlined"
-                                color="secondary"
-                                sx={{ flex: 1 }}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          ) : null}
-                          <Button
-                            onClick={() =>
-                              handleEditBooking(booking.reservation_id)
-                            }
-                            variant="outlined"
-                            color="primary"
-                            sx={{ flex: 1 }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() =>
-                              handleDeleteBooking(booking.reservation_id)
-                            }
-                            variant="outlined"
-                            color="secondary"
-                            sx={{ flex: 1 }}
-                          >
-                            Delete
-                          </Button>
-                        </Box>
-                      )}
-                      {getStatusIconAndText(booking.status).icon}
-                      <Typography
-                        variant="body2"
-                        color="textSecondary"
-                        style={{ position: "absolute", top: 44, right: 10 }}
-                      >
-                        {getStatusIconAndText(booking.status).text}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
-            )}
-          </Box>
-        )}
-      </Box>
+                        <Typography variant="body1">
+                          Booking Time: {booking.reservation_time}
+                        </Typography>
+                        <Typography variant="body1">
+                          Number of Guests: {booking.number_of_guests}
+                        </Typography>
+                        <Typography variant="body1">
+                          Special Requests: {booking.special_requests}
+                        </Typography>
+                        <Typography variant="h6">Menu Items</Typography>
+                        <List>
+                          {booking.menu_items ? (
+                            booking.menu_items.map((menuItem, itemIndex) => (
+                              <ListItem key={itemIndex}>
+                                <ListItemText
+                                  primary={`Item Name: ${menuItem.item_name}`}
+                                  secondary={`Quantity: ${menuItem.quantity}`}
+                                />
+                              </ListItem>
+                            ))
+                          ) : (
+                            <Typography>No menu items available</Typography>
+                          )}
+                        </List>
+                        {isBookingExpired(booking) ? (
+                          <Typography variant="body2" color="textSecondary">
+                            Cannot Edit This Order
+                          </Typography>
+                        ) : (
+                          <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                            {booking.status === "P" ? (
+                              <>
+                                <Button
+                                  onClick={() =>
+                                    handleAcceptBooking(booking.reservation_id)
+                                  }
+                                  variant="outlined"
+                                  color="primary"
+                                  sx={{ flex: 1 }}
+                                >
+                                  Accept
+                                </Button>
+                                <Button
+                                  onClick={() =>
+                                    handleRejectBooking(booking.reservation_id)
+                                  }
+                                  variant="outlined"
+                                  color="secondary"
+                                  sx={{ flex: 1 }}
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            ) : null}
+                            <Button
+                              onClick={() =>
+                                handleEditBooking(booking.reservation_id)
+                              }
+                              variant="outlined"
+                              color="primary"
+                              sx={{ flex: 1 }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() =>
+                                handleDeleteBooking(booking.reservation_id)
+                              }
+                              variant="outlined"
+                              color="secondary"
+                              sx={{ flex: 1 }}
+                            >
+                              Delete
+                            </Button>
+                          </Box>
+                        )}
+                        {getStatusIconAndText(booking.status).icon}
+                        <Typography
+                          variant="body2"
+                          color="textSecondary"
+                          style={{ position: "absolute", top: 44, right: 10 }}
+                        >
+                          {getStatusIconAndText(booking.status).text}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          )}
+        </Box>
+      </Container>
       <Footer />
-    </>
+    </div>
   );
 }
 

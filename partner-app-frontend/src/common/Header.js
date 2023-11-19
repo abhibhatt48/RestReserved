@@ -13,7 +13,7 @@ function Header() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      localStorage.setItem("customer_id", "");
+      localStorage.setItem("restaurant_id", "");
       localStorage.removeItem(
         "firebase:authUser:[AIzaSyBMXP3EqiPQEP6f91mMekTuiBTp-Uw6baE]:[csci5410-serverless-auth]"
       );
@@ -22,8 +22,14 @@ function Header() {
     }
     navigate("/signin");
   };
+  const navigateToView = () => {
+    navigate("/view");
+  };
   const navigateToHome = () => {
     navigate("/holistic");
+  };
+  const navigateToResDetails = () => {
+    navigate("/restaurant-details");
   };
 
   return (
@@ -34,6 +40,12 @@ function Header() {
         </Button>
 
         <div>
+          <Button color="inherit" onClick={navigateToResDetails}>
+            Restaurant Details
+          </Button>
+          <Button color="inherit" onClick={navigateToView}>
+            View Bookings
+          </Button>
           <Button color="inherit" onClick={handleLogout}>
             SignOut
             <ExitToAppIcon /> {/* Logout icon */}
