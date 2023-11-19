@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Container } from "@mui/material";
 import Footer from "../../common/Footer";
-import useNavigate from "react-router-dom";
- 
+import { useNavigate } from "react-router-dom";
+
 const formStyle = {
   display: "flex",
   flexDirection: "column",
@@ -16,7 +16,7 @@ const formStyle = {
   borderRadius: "8px",
   boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
 };
- 
+
 const inputStyle = {
   width: "100%",
   padding: "10px",
@@ -24,7 +24,7 @@ const inputStyle = {
   borderRadius: "4px",
   border: "1px solid #ccc",
 };
- 
+
 const submitButtonStyle = {
   padding: "10px 20px",
   border: "none",
@@ -34,7 +34,7 @@ const submitButtonStyle = {
   cursor: "pointer",
   transition: "background-color 0.3s ease",
 };
- 
+
 const EditRestaurantForm = ({ restaurant, onSave }) => {
   const [name, setName] = useState(restaurant.name);
   const [closingTime, setClosingTime] = useState(restaurant.res_closing_time);
@@ -42,7 +42,7 @@ const EditRestaurantForm = ({ restaurant, onSave }) => {
   const [address, setAddress] = useState(restaurant.res_address);
   const [totalTables, setTotalTables] = useState(restaurant.res_total_tables);
   const [imageBase64, setImageBase64] = useState("");
- 
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
@@ -63,7 +63,7 @@ const EditRestaurantForm = ({ restaurant, onSave }) => {
       console.error("Error updating restaurant:", error);
     }
   };
- 
+
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -74,7 +74,7 @@ const EditRestaurantForm = ({ restaurant, onSave }) => {
       reader.readAsDataURL(file);
     }
   };
- 
+
   return (
     <div
       style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
@@ -126,20 +126,20 @@ const EditRestaurantForm = ({ restaurant, onSave }) => {
     </div>
   );
 };
- 
+
 const RestaurantList = () => {
   const navigate = useNavigate();
   const restaurantId = localStorage.getItem("restaurant_id");
   const [restaurant, setRestaurant] = useState(null);
   //const [restaurantId, setRestaurantId] = useState('');
   const [editMode, setEditMode] = useState(false);
- 
+
   useEffect(() => {
     if (restaurantId) {
       fetchRestaurantById(restaurantId);
     }
   }, [restaurantId]);
- 
+
   const fetchRestaurantById = async (id) => {
     try {
       const response = await axios.get(
@@ -151,29 +151,29 @@ const RestaurantList = () => {
       setRestaurant(null);
     }
   };
- 
+
   // const handleInputChange = (event) => {
   //   setRestaurantId(event.target.value);
   // };
- 
+
   const handleEditClick = () => {
     setEditMode(true);
   };
- 
+
   const handleViewMenuClick = () => {
     //alert("View Menu clicked. Implement navigation here.");
     navigate("/view-menu");
   };
- 
+
   const handleSave = () => {
     setEditMode(false);
     fetchRestaurantById(restaurantId);
   };
- 
+
   if (editMode && restaurant) {
     return <EditRestaurantForm restaurant={restaurant} onSave={handleSave} />;
   }
- 
+
   return (
     <div
       style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
@@ -252,5 +252,5 @@ const RestaurantList = () => {
     </div>
   );
 };
- 
+
 export default RestaurantList;

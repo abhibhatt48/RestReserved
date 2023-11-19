@@ -30,8 +30,8 @@ import { format, startOfMonth } from "date-fns";
 import Footer from "../../common/Footer";
 
 const RestaurantCalendar = ({ reservations }) => {
-  const [view, setView] = useState("day"); // Default view is 'day'
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Selected date
+  const [view, setView] = useState("day");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [filteredReservations, setFilteredReservations] = useState([]);
 
   const handleViewChange = (event, newValue) => {
@@ -79,7 +79,6 @@ const RestaurantCalendar = ({ reservations }) => {
   };
 
   useEffect(() => {
-    // Update filtered reservations based on the selected view and date
     if (view === "day") {
       const currentDate = selectedDate.toDateString();
       const filtered = reservations.filter((reservation) => {
@@ -120,7 +119,6 @@ const RestaurantCalendar = ({ reservations }) => {
     }
   }, [view, selectedDate, reservations]);
 
-  // Define the heading based on the selected view
   let heading = "";
   if (view === "day") {
     heading = `Booking for ${format(selectedDate, "do MMMM yyyy")}`;
