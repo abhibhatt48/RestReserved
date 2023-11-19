@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import { FormControlLabel, Checkbox } from "@mui/material";
+import { FormControlLabel, Checkbox, Container } from "@mui/material";
 import Loader from "../../common/Loader";
 import Footer from "../../common/Footer";
 import { useNavigate, useParams } from "react-router-dom";
@@ -19,6 +19,7 @@ function EditReservation() {
   const [numGuests, setNumGuests] = useState("");
   const [special_requests, setSpecial_requests] = useState("");
   const [restaurant_id, setRestaurant_id] = useState("");
+  const [customer_id, setCustomer_id] = useState("");
   const [date, setDate] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
@@ -59,6 +60,7 @@ function EditReservation() {
           setTimeSlot(reservationData.reservation_time);
           setRestaurant_id(reservationData.restaurant_id);
           setSelectedItems(reservationData.menu_items);
+          setCustomer_id(reservationData.customer_id);
 
           const selectedItemsData = {};
           const itemQuantitiesData = {};
@@ -197,10 +199,9 @@ function EditReservation() {
   };
 
   const handleEditClick = () => {
-    const customer_id = localStorage.getItem("customer_id");
     const restaurant_id = localStorage.getItem("restaurant_id");
     const requestBody = {
-      customer_id,
+      customer_id: customer_id,
       restaurant_id,
       reservation_id: reservationId,
       reservation_date: date,
@@ -224,116 +225,124 @@ function EditReservation() {
       .then((response) => {
         console.log("Booking successful:", response.data);
         alert("Update Successful");
-        navigate("/listrestaurants");
+        navigate("/holistic");
       })
       .catch((error) => {
         console.error("Booking error:", error);
         alert("Update Unsuccessful");
-        navigate("/listrestaurants");
+        navigate("/holistic");
       });
   };
 
   return (
-    <>
-      <Typography variant="h4">Edit Reservation</Typography>
-      <Box m={2} p={2} display="flex" flexDirection="column">
-        <Box mb={2}>
-          <TextField
-            label="Number of Guests"
-            type="number"
-            value={numGuests}
-            onChange={(e) => setNumGuests(e.target.value)}
-            variant="outlined"
-            style={{ width: "100%" }}
-          />
-        </Box>
-        <Box mb={2}>
-          <TextField
-            label="Date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            variant="outlined"
-            style={{ width: "100%" }}
-          />
-        </Box>
-        <Box mb={2}>
-          <TextField
-            select
-            label="Table Number"
-            value={tableNumber}
-            onChange={handleTableNumberChange}
-            variant="outlined"
-            style={{ width: "100%" }}
-          >
-            {tableNumbers.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Box>
-        <Box mb={2}>
-          <TextField
-            select
-            label="Time Slot"
-            value={timeSlot}
-            onChange={(e) => setTimeSlot(e.target.value)}
-            variant="outlined"
-            style={{ width: "100%" }}
-          >
-            {timeSlots.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Box>
-        <Box mb={2}>
-          <TextField
-            label="Special Requests"
-            type="text"
-            value={special_requests}
-            onChange={(e) => setSpecial_requests(e.target.value)}
-            variant="outlined"
-            style={{ width: "100%" }}
-          />
-        </Box>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={fetchMenu}
-              onChange={handleCheckboxChange}
-              color="primary"
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
+      <Container style={{ flex: 1 }}>
+        <Typography variant="h4">Edit Reservation</Typography>
+        <Box m={2} p={2} display="flex" flexDirection="column">
+          <Box mb={2}>
+            <TextField
+              label="Number of Guests"
+              type="number"
+              value={numGuests}
+              onChange={(e) => setNumGuests(e.target.value)}
+              variant="outlined"
+              style={{ width: "100%" }}
             />
-          }
-          label="Add Items From Menu to this Order (Optional)"
-        />
-        {fetchMenu ? (
-          loading ? (
-            <Loader />
-          ) : (
-            <Grid container spacing={2}>
-              {menuItems.map((item) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
-                  <MenuItemCard
-                    item={item}
-                    onItemSelect={handleItemSelect}
-                    quantity={itemQuantities[item.item_id] || 0}
-                  />
-                </Grid>
+          </Box>
+          <Box mb={2}>
+            <TextField
+              label="Date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              variant="outlined"
+              style={{ width: "100%" }}
+            />
+          </Box>
+          <Box mb={2}>
+            <TextField
+              select
+              label="Table Number"
+              value={tableNumber}
+              onChange={handleTableNumberChange}
+              variant="outlined"
+              style={{ width: "100%" }}
+            >
+              {tableNumbers.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
               ))}
-            </Grid>
-          )
-        ) : null}
-        <Box mt={2}>
-          <Button variant="contained" color="primary" onClick={handleEditClick}>
-            Update
-          </Button>
+            </TextField>
+          </Box>
+          <Box mb={2}>
+            <TextField
+              select
+              label="Time Slot"
+              value={timeSlot}
+              onChange={(e) => setTimeSlot(e.target.value)}
+              variant="outlined"
+              style={{ width: "100%" }}
+            >
+              {timeSlots.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+          <Box mb={2}>
+            <TextField
+              label="Special Requests"
+              type="text"
+              value={special_requests}
+              onChange={(e) => setSpecial_requests(e.target.value)}
+              variant="outlined"
+              style={{ width: "100%" }}
+            />
+          </Box>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={fetchMenu}
+                onChange={handleCheckboxChange}
+                color="primary"
+              />
+            }
+            label="Add Items From Menu to this Order (Optional)"
+          />
+          {fetchMenu ? (
+            loading ? (
+              <Loader />
+            ) : (
+              <Grid container spacing={2}>
+                {menuItems.map((item) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
+                    <MenuItemCard
+                      item={item}
+                      onItemSelect={handleItemSelect}
+                      quantity={itemQuantities[item.item_id] || 0}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )
+          ) : null}
+          <Box mt={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleEditClick}
+            >
+              Update
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      </Container>
       <Footer />
-    </>
+    </div>
   );
 }
 

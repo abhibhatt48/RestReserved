@@ -3,7 +3,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event, context) => {
   console.log("event:", event);
-  const restaurantId = event.queryStringParameters.restaurantId;
+  const restaurantId = event.restaurantId;
   if (!restaurantId) {
     return {
       statusCode: 400,
@@ -14,8 +14,8 @@ exports.handler = async (event, context) => {
   }
 
   const params = {
-    TableName: "menu",
-    FilterExpression: "RestaurantID = :restaurantId",
+    TableName: "restaurant_menu_details",
+    FilterExpression: "res_id = :restaurantId",
     ExpressionAttributeValues: {
       ":restaurantId": restaurantId,
     },
@@ -39,7 +39,7 @@ exports.handler = async (event, context) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error }),
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };

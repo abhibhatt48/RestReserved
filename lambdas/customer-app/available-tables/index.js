@@ -1,5 +1,7 @@
 const admin = require("firebase-admin");
 const serviceAccount = require("./high-radius-401215-firebase-adminsdk-c4bv1-1ba4657cbc.json");
+const AWS = require("aws-sdk");
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -9,15 +11,43 @@ admin.initializeApp({
 const firestore = admin.firestore();
 
 exports.handler = async (event) => {
-  console.log("event", event);
   try {
-    const {
-      restaurant_id,
-      booking_date,
-      opening_time,
-      closing_time,
-      no_of_tables,
-    } = event;
+    const { restaurant_id, booking_date } = event;
+
+    if (!restaurant_id) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error: "Missing restaurantId in query parameters",
+        }),
+      };
+    }
+
+    // Fetch restaurant details from the "table_reservation_app_restaurants" table
+    const restaurantParams = {
+      TableName: "table_reservation_app_restaurants",
+      Key: {
+        restaurant_id: restaurant_id,
+      },
+      ProjectionExpression:
+        "res_opening_time, res_closing_time, res_total_tables",
+    };
+
+    const restaurantData = await dynamoDB.get(restaurantParams).promise();
+    console.log("restaurantData:", restaurantData);
+
+    if (!restaurantData.Item) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Restaurant not found" }),
+      };
+    }
+    const no_of_tables = restaurantData.Item.res_total_tables;
+    const opening_time = restaurantData.Item.res_opening_time;
+    const closing_time = restaurantData.Item.res_closing_time;
+    console.log("no_of_tables", no_of_tables);
+    console.log("opening_time", opening_time);
+    console.log("closing_time", closing_time);
 
     // Fetch all reservations for the specified restaurant and date
     const reservations = await getReservations(restaurant_id, booking_date);

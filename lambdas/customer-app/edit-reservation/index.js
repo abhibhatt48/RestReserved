@@ -14,26 +14,15 @@ exports.handler = async (event) => {
 
   const {
     reservation_id,
-    updated_reservation_date,
-    updated_reservation_time,
-    updated_table_number,
-    updated_number_of_guests,
-    updated_special_requests,
-    menu_items,
+    status,
+    ...updatedData // Exclude reservation_id and status from updatedData
   } = requestBody;
 
   try {
-    const updatedReservation = await updateAndSaveReservation(
-      reservation_id,
-      {
-        reservation_date: updated_reservation_date,
-        reservation_time: updated_reservation_time,
-        table_number: updated_table_number,
-        number_of_guests: updated_number_of_guests,
-        special_requests: updated_special_requests,
-      },
-      menu_items
-    );
+    const updatedReservation = await updateAndSaveReservation(reservation_id, {
+      ...updatedData,
+      status: status || "P", // Use the provided status or default to "P"
+    });
 
     return {
       statusCode: 200,
@@ -50,7 +39,7 @@ exports.handler = async (event) => {
   }
 };
 
-async function updateAndSaveReservation(reservationId, updatedData, menuItems) {
+async function updateAndSaveReservation(reservationId, updatedData) {
   const reservationRef = firestore
     .collection("reservations")
     .doc(reservationId);
@@ -64,69 +53,28 @@ async function updateAndSaveReservation(reservationId, updatedData, menuItems) {
 
     const reservationData = existingReservation.data() || {};
 
-    if (updatedData.reservation_date !== undefined) {
-      reservationData.reservation_date = updatedData.reservation_date;
-    }
-    if (updatedData.reservation_time !== undefined) {
-      reservationData.reservation_time = updatedData.reservation_time;
-    }
-    if (updatedData.table_number !== undefined) {
-      reservationData.table_number = updatedData.table_number;
-    }
-    if (updatedData.number_of_guests !== undefined) {
-      reservationData.number_of_guests = updatedData.number_of_guests;
-    }
-    if (updatedData.special_requests !== undefined) {
-      reservationData.special_requests = updatedData.special_requests;
-    }
+    // Update fields from updatedData
+    for (const key in updatedData) {
+      if (updatedData.hasOwnProperty(key)) {
+        const updatedValue = updatedData[key];
 
-    if (menuItems !== undefined) {
-      let existingMenuItems = reservationData.menu_items || [];
-
-      for (const updatedMenuItem of menuItems) {
-        const existingMenuItemIndex = existingMenuItems.findIndex(
-          (item) => item.item_id === updatedMenuItem.item_id
-        );
-
-        if (existingMenuItemIndex === -1) {
-          // If item_id not found, add a new item
-          if (
-            updatedMenuItem.item_id &&
-            updatedMenuItem.item_name &&
-            updatedMenuItem.quantity !== undefined
-          ) {
-            existingMenuItems.push(updatedMenuItem);
-          } else {
-            throw new Error("Invalid menu item data");
-          }
-        } else if (updatedMenuItem.quantity !== undefined) {
-          // Update only the quantity or remove if it's 0
-          if (updatedMenuItem.quantity === 0) {
-            existingMenuItems.splice(existingMenuItemIndex, 1);
-          } else {
-            existingMenuItems[existingMenuItemIndex].quantity =
-              updatedMenuItem.quantity;
-          }
+        // Handle special case: remove menu items with quantity 0
+        if (key === "menu_items" && Array.isArray(updatedValue)) {
+          const updatedMenuItems = updatedValue.filter(
+            (item) => item.quantity !== 0
+          );
+          reservationData[key] = updatedMenuItems;
+        } else {
+          reservationData[key] = updatedValue;
         }
       }
-
-      // Update the menu_items in Firestore
-      reservationData.menu_items = existingMenuItems;
     }
 
-    await reservationRef.update({
-      reservation_date: reservationData.reservation_date,
-      reservation_time: reservationData.reservation_time,
-      table_number: reservationData.table_number,
-      number_of_guests: reservationData.number_of_guests,
-      special_requests: reservationData.special_requests,
-      menu_items: reservationData.menu_items,
-    });
+    // Update the reservation in Firestore
+    console.log("reservation_data", reservationData);
+    await reservationRef.update(reservationData);
 
-    return {
-      ...reservationData,
-      ...updatedData,
-    };
+    return reservationData;
   } catch (error) {
     console.log(error);
     throw new Error("Failed to update and save reservation: " + error.message);
