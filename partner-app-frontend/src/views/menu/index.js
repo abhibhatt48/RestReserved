@@ -5,6 +5,7 @@ const MenuDisplay = () => {
   const [menuData, setMenuData] = useState(null);
   const [mainToggle, setMainToggle] = useState(false);
   const [editForm, setEditForm] = useState(null);
+  const [menuDiscountRate, setMenuDiscountRate] = useState('');  
   const [editedItem, setEditedItem] = useState({
     itemName: '',
     category: [],
@@ -43,6 +44,8 @@ const MenuDisplay = () => {
   }, []);
 
   const handleMainToggle = () => {
+    if (!mainToggle) {
+    }
     setMainToggle(!mainToggle);
   };
 
@@ -180,6 +183,32 @@ const MenuDisplay = () => {
     return <div>Loading...</div>;
   }
 
+  const handleSaveMenuDiscountRate = () => {
+    const updatedMenuData = {
+      menu_id: menuData.menu_id,
+      menu_discount: mainToggle,
+      menu_discount_rate: menuDiscountRate, 
+      res_id: menuData.res_id,
+      items: [...menuData.items],
+    };
+
+    editMenu(updatedMenuData);
+    //window.location.reload();
+  };
+
+  const handleSubmit = () => {
+    const updatedMenuData = {
+      menu_id: menuData.menu_id,
+      menu_discount: mainToggle,
+      menu_discount_rate: "0.0", 
+      res_id: menuData.res_id,
+      items: [...menuData.items],
+    };
+
+    editMenu(updatedMenuData);
+    
+  };
+  
   return (
     <div className="container mt-4">
       <h1>{menuData.menu_id}</h1>
@@ -196,6 +225,31 @@ const MenuDisplay = () => {
          Menu Discount
         </label>
       </div>
+      <p>Menu Discount: {menuData.menu_discount ? 'Yes' : 'No'}</p>
+      <p>Menu Discount Rate: {menuData.menu_discount_rate}</p>
+
+      {mainToggle && (
+        <div className="mb-3">
+          <label htmlFor="menuDiscountRate" className="form-label">
+            Menu Discount Rate
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="menuDiscountRate"
+            value={menuDiscountRate}  
+            onChange={(e) => setMenuDiscountRate(e.target.value)}           
+            />
+          <button
+            type="button"
+            className="btn btn-primary mt-2"
+            onClick={handleSaveMenuDiscountRate}
+          >
+            Save
+          </button>
+        </div>
+      )}
+      
 
       <div className="row row-cols-1 row-cols-md-2 g-4">
         {menuData.items.map((item, index) => (
@@ -339,18 +393,17 @@ const MenuDisplay = () => {
         ))}
       </div>
 
-      <p>Menu Discount: {menuData.menu_discount ? 'Yes' : 'No'}</p>
-      <p>Menu Discount Rate: {menuData.menu_discount_rate}</p>
-
+      
       <div className="row mt-4">
         <div className="col text-center">
           <button type="button" className="btn btn-success" onClick={handleAddMenuItem}>
             Add Menu Item
           </button>
+          
         </div>
       </div>
       
-      {/* Add Menu Item Form */}
+      
         {showAddMenuItemForm && (
           <div className="card mt-4">
             <div className="card-body">
@@ -453,11 +506,18 @@ const MenuDisplay = () => {
       <button type="button" className="btn btn-primary mt-2" onClick={handleAddMenuSave}>
         Save
       </button>
+      
     </div>
+    
   </div>
+  
 )}
               
-      
+              {!mainToggle && (
+        <button type="button" className="btn btn-success" onClick={handleSubmit} style={{ margin: '10px' }}>
+          Submit
+        </button>
+      )}
 
       
     </div>
