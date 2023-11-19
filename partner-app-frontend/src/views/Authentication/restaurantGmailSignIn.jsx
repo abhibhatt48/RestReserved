@@ -55,6 +55,10 @@ const GmailSignInForm = () => {
         {
         const provider = new GoogleAuthProvider();
         const result=await signInWithPopup(auth, provider);
+        if(result.user.email != email)
+        {
+          alert("Please login with the correct Gmail Id")
+        }
         localStorage.setItem("customer_id", result.user.email);
         // User signed in with Google
         console.log('User signed in with Google',result.user);
