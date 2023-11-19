@@ -472,7 +472,7 @@ const MenuDisplay = () => {
                 value={newItem.itemDiscountRate}
                 onChange={(e) => {
                   if (!mainToggle) {
-                  setNewItem({ ...newItem, itemDiscount: !newItem.itemDiscountRate });
+                  setNewItem({ ...newItem, itemDiscountRate: e.target.value });
                 }
               }}
               disabled={mainToggle}
