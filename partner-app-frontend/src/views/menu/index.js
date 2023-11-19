@@ -43,10 +43,26 @@ const MenuDisplay = () => {
     fetchMenuData();
   }, []);
 
-  const handleMainToggle = () => {
-    if (!mainToggle) {
-    }
-    setMainToggle(!mainToggle);
+  const handleMainToggle = async () => {
+    setMainToggle((prevMainToggle) => {
+      // Use the previous state to determine the new state
+      const newMainToggle = !prevMainToggle;
+  
+      if (!newMainToggle) {
+        const updatedMenuData = {
+          menu_id: menuData.menu_id,
+          menu_discount: newMainToggle,
+          menu_discount_rate: "0.0",
+          res_id: menuData.res_id,
+          items: [...menuData.items],
+        };
+  
+        // Assuming `editMenu` is an asynchronous function
+        editMenu(updatedMenuData);
+      }
+  
+      return newMainToggle; // Return the new state
+    });
   };
 
   const handleEditClick = (index) => {
@@ -196,18 +212,7 @@ const MenuDisplay = () => {
     //window.location.reload();
   };
 
-  const handleSubmit = () => {
-    const updatedMenuData = {
-      menu_id: menuData.menu_id,
-      menu_discount: mainToggle,
-      menu_discount_rate: "0.0", 
-      res_id: menuData.res_id,
-      items: [...menuData.items],
-    };
 
-    editMenu(updatedMenuData);
-    
-  };
   
   return (
     <div className="container mt-4">
@@ -513,13 +518,7 @@ const MenuDisplay = () => {
   
 )}
               
-              {!mainToggle && (
-        <button type="button" className="btn btn-success" onClick={handleSubmit} style={{ margin: '10px' }}>
-          Submit
-        </button>
-      )}
 
-      
     </div>
   );
 };
