@@ -162,7 +162,7 @@ const RestaurantList = () => {
 
   const handleViewMenuClick = () => {
     //alert("View Menu clicked. Implement navigation here.");
-    navigate("/view-menu");
+    navigate("/menu");
   };
 
   const handleSave = () => {
