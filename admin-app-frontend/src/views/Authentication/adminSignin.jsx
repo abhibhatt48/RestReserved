@@ -53,12 +53,16 @@ const SignInWithEmailForm = () => {
         console.log(user_role);
         if(user_role=="admin")
         {
-          const userCredential = signInWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-          console.log('User Signed in successfully:', user);
-          localStorage.setItem("admin_id", email);
-          console.log('admin_id: ',email)
-          //navigate("/holistic");
+          try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            console.log('User signed in successfully:', user);
+            localStorage.setItem("admin_id", email);
+            console.log('admin_id:', email);
+          } catch (error) {
+            console.error('Error signing in:', error.message);
+            alert("There was an error signing in. Please use the correct credentials")
+          }
         }
         else
         {
