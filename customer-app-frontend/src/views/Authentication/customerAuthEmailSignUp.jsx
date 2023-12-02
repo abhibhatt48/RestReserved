@@ -85,6 +85,7 @@ const SignupForm = () => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.error('Error signing up:',errorCode, errorMessage);
+        alert("Error signing up. Please make sure:\n 1. You are putting a valid email address.\n2. You have not already registered with the same email.")
       }
     }
   };
@@ -165,7 +166,7 @@ const SignupForm = () => {
         </form>
         <Grid container justifyContent="center" mt={2}>
           <Grid item>
-            <Link to="/signin">Already registered? Sign In</Link>
+            <Link to="/signin">Already registered or have a Gmail? Sign In</Link>
           </Grid>
         </Grid>
       </Paper>

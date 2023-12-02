@@ -3,6 +3,7 @@ import { auth } from '../../common/firebaseConfig';
 import {signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Typography, Box, Paper } from '@mui/material';
+import axios from 'axios';
 
 const SignInWithEmailForm = () => {
   let navigate = useNavigate();
@@ -27,7 +28,7 @@ const SignInWithEmailForm = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Performing form validation
@@ -41,16 +42,33 @@ const SignInWithEmailForm = () => {
     if (Object.values(formErrors).every((error) => error === '')) {
      const { email,password} = formData;
      try{
-        const userCredential = signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        localStorage.setItem("customer_id", email);
-        console.log('User Signed in successfully:', user);
-        navigate("/listrestaurants");
+         //check if the email exists in the db
+         const userExists = await axios.post('https://vdvua9bvw8.execute-api.us-east-1.amazonaws.com/prod/user-exists', {
+              "email":email,
+            });
+        console.log(userExists);
+        if(userExists.data==false)
+        {
+          alert("Error Singing in.\n Please make sure:\n1.You Sign Up before Signing in\n 2.You are using correct credentials.")
+        }
+        else{
+          try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            localStorage.setItem("customer_id", email);
+            console.log('User Signed in successfully:', user);
+            navigate("/listrestaurants");
+        } catch (error) {
+            console.error('Error signing in:', error.message);
+            alert('Error signing in. Please check your credentials and try again.');
+        }
+        }
 
      }catch(error){
         const errorCode = error.code;
         const errorMessage = error.message;
         console.error('Error signing up:',errorCode, errorMessage);
+        alert("Error signing in. Please make sure you are using the correct credentials.")
     }
     }};
 
