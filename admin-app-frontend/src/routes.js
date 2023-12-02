@@ -12,6 +12,7 @@ const Router = () => {
       <Route path="/top-items" element={<TopMenuItems />} />
       <Route path="/top-customers" element={<TopCustomers />} />
        <Route path="/reviews" element={<Reviews />} />
+       <Route path="/top-periods" element={<TopPeriods />} />
     </Routes>
   );
 };
