@@ -59,6 +59,7 @@ const SignInWithEmailForm = () => {
             console.log('User signed in successfully:', user);
             localStorage.setItem("admin_id", email);
             console.log('admin_id:', email);
+            navigate('/top-restaurants');
           } catch (error) {
             console.error('Error signing in:', error.message);
             alert("There was an error signing in. Please use the correct credentials")
