@@ -11,10 +11,10 @@ root.render(
     <App />
   </React.StrictMode>
 );
-Kommunicate.init("18f488df55447a45e5e80682fe2d4d32f", {
-  automaticChatOpenOnNavigation: true,
-  popupWidget: true,
-});
+// Kommunicate.init("18f488df55447a45e5e80682fe2d4d32f", {
+//   automaticChatOpenOnNavigation: true,
+//   popupWidget: true,
+// });
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
