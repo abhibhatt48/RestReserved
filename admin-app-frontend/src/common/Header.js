@@ -2,30 +2,43 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
-import { auth } from './firebaseConfig';
-import { signOut } from 'firebase/auth';
+import { auth } from "./firebaseConfig";
+import { signOut } from "firebase/auth";
 import Button from "@mui/material/Button";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp"; // Import the logout icon
 
 function Header() {
   const navigate = useNavigate();
 
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     try {
       await signOut(auth);
-      localStorage.setItem("customer_id", "");
-      localStorage.removeItem('firebase:authUser:[AIzaSyBMXP3EqiPQEP6f91mMekTuiBTp-Uw6baE]:[csci5410-serverless-auth]');
-    } 
-    catch (error) {
-      console.error('Error signing out:', error);
+      localStorage.setItem("admin_id", "");
+      localStorage.removeItem(
+        "firebase:authUser:[AIzaSyBMXP3EqiPQEP6f91mMekTuiBTp-Uw6baE]:[csci5410-serverless-auth]"
+      );
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
-    navigate("/signin");
+    navigate("/");
   };
-  const navigateToView = () => {
-    navigate("/view");
+  const navigateToTopRestaurants = () => {
+    navigate("/top-restaurants");
   };
   const navigateToHome = () => {
-    navigate("/listrestaurants");
+    navigate("/top-restaurants");
+  };
+  const navigateToTopItems = () => {
+    navigate("/top-items");
+  };
+  const navigateToTopCustomers = () => {
+    navigate("/top-customers");
+  };
+  const navigateToTopPeriods = () => {
+    navigate("/top-periods");
+  };
+  const navigateToReviews = () => {
+    navigate("/reviews");
   };
 
   return (
@@ -36,8 +49,20 @@ function Header() {
         </Button>
 
         <div>
-          <Button color="inherit" onClick={navigateToView}>
-            View Bookings
+          <Button color="inherit" onClick={navigateToTopRestaurants}>
+            Top Restaurants
+          </Button>
+          <Button color="inherit" onClick={navigateToTopItems}>
+            Top Food Items
+          </Button>
+          <Button color="inherit" onClick={navigateToTopCustomers}>
+            Top Customers
+          </Button>
+          <Button color="inherit" onClick={navigateToTopPeriods}>
+            Top Periods
+          </Button>
+          <Button color="inherit" onClick={navigateToReviews}>
+            Reviews
           </Button>
           <Button color="inherit" onClick={handleLogout}>
             SignOut
